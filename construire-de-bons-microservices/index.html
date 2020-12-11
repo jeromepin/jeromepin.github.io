@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Construire de bons microservices - Jérôme Pin</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=10" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author"
+  content="Jérôme Pin" /><meta name="description" content="Configuration La configuration d&amp;rsquo;un service doit être optionnelle et tous ses paramètres doivent avoir une valeur par défaut :
+1  const ELASTICSEARCH_HOST = process.env.ELASTICSEARCH_HOST || &amp;#39;localhost&amp;#39;;   Ou encore :
+1  ELASTICSEARCH_HOST=${$ELASTICSEARCH_HOST:-localhost}   Chaque élément de configuration doit être modifiable par une variable d&amp;rsquo;environnement correctement nommée. L&amp;rsquo;intérêt est de permettre de changer le comportement de l&amp;rsquo;application au runtime plutôt qu&amp;rsquo;au buildtime. De plus, l&amp;rsquo;usage d&amp;rsquo;orchestrateurs de conteneurs comme Docker Swarm ou Kubernetes rendent plus pratique le passage de variables d&amp;rsquo;environnement que de fichiers de configuration." /><meta name="keywords"
+  content="" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.74.1 with even 4.0.0" />
+
+
+<link rel="canonical" href="https://jeromepin.fr/construire-de-bons-microservices/" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+<link href="/dist/even.5bb5d238.min.css" rel="stylesheet">
+<link rel="stylesheet" href="/css/override.min.94a081c052a26663f151b76dee7ee555de4c4fef01d038c5ea6c7758a708c7ec.css" integrity="sha256-lKCBwFKiZmPxUbdt7n7lVd5MT&#43;8B0DjF6mx3WKcIx&#43;w=" />
+
+<meta property="og:title" content="Construire de bons microservices" />
+<meta property="og:description" content="Configuration La configuration d&rsquo;un service doit être optionnelle et tous ses paramètres doivent avoir une valeur par défaut :
+1  const ELASTICSEARCH_HOST = process.env.ELASTICSEARCH_HOST || &#39;localhost&#39;;   Ou encore :
+1  ELASTICSEARCH_HOST=${$ELASTICSEARCH_HOST:-localhost}   Chaque élément de configuration doit être modifiable par une variable d&rsquo;environnement correctement nommée. L&rsquo;intérêt est de permettre de changer le comportement de l&rsquo;application au runtime plutôt qu&rsquo;au buildtime. De plus, l&rsquo;usage d&rsquo;orchestrateurs de conteneurs comme Docker Swarm ou Kubernetes rendent plus pratique le passage de variables d&rsquo;environnement que de fichiers de configuration." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://jeromepin.fr/construire-de-bons-microservices/" />
+<meta property="article:published_time" content="2018-09-02T14:51:00+01:00" />
+<meta property="article:modified_time" content="2018-09-02T14:51:00+01:00" />
+<meta itemprop="name" content="Construire de bons microservices">
+<meta itemprop="description" content="Configuration La configuration d&rsquo;un service doit être optionnelle et tous ses paramètres doivent avoir une valeur par défaut :
+1  const ELASTICSEARCH_HOST = process.env.ELASTICSEARCH_HOST || &#39;localhost&#39;;   Ou encore :
+1  ELASTICSEARCH_HOST=${$ELASTICSEARCH_HOST:-localhost}   Chaque élément de configuration doit être modifiable par une variable d&rsquo;environnement correctement nommée. L&rsquo;intérêt est de permettre de changer le comportement de l&rsquo;application au runtime plutôt qu&rsquo;au buildtime. De plus, l&rsquo;usage d&rsquo;orchestrateurs de conteneurs comme Docker Swarm ou Kubernetes rendent plus pratique le passage de variables d&rsquo;environnement que de fichiers de configuration.">
+<meta itemprop="datePublished" content="2018-09-02T14:51:00&#43;01:00" />
+<meta itemprop="dateModified" content="2018-09-02T14:51:00&#43;01:00" />
+<meta itemprop="wordCount" content="901">
+
+
+
+<meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Construire de bons microservices"/>
+<meta name="twitter:description" content="Configuration La configuration d&rsquo;un service doit être optionnelle et tous ses paramètres doivent avoir une valeur par défaut :
+1  const ELASTICSEARCH_HOST = process.env.ELASTICSEARCH_HOST || &#39;localhost&#39;;   Ou encore :
+1  ELASTICSEARCH_HOST=${$ELASTICSEARCH_HOST:-localhost}   Chaque élément de configuration doit être modifiable par une variable d&rsquo;environnement correctement nommée. L&rsquo;intérêt est de permettre de changer le comportement de l&rsquo;application au runtime plutôt qu&rsquo;au buildtime. De plus, l&rsquo;usage d&rsquo;orchestrateurs de conteneurs comme Docker Swarm ou Kubernetes rendent plus pratique le passage de variables d&rsquo;environnement que de fichiers de configuration."/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Jérôme Pin</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div>
+  <div class="logo-wrapper">
+    <a href="/" class="logo">Jérôme Pin</a>
+  </div>
+</div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+        <h1 class="post-title">Construire de bons microservices</h1>
+
+        <div class="post-meta">
+            <span class="post-time"> 2 Sep </span>
+            
+            
+        </div>
+    </header>
+
+    
+<div class="post-toc" id="post-toc">
+  
+  <div
+    class="post-toc-content always-active">
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#configuration">Configuration</a></li>
+    <li><a href="#signaux-et-fermeture">Signaux et fermeture</a></li>
+    <li><a href="#logs">Logs</a></li>
+    <li><a href="#choix-du-langage">Choix du langage</a>
+      <ul>
+        <li><a href="#éviter-les-langages-à-machines-virtuelles">Éviter les langages à machines virtuelles</a></li>
+        <li><a href="#créer-des-binaires-statiques">Créer des binaires statiques</a></li>
+      </ul>
+    </li>
+    <li><a href="#stateless-vs-stateful">Stateless vs Stateful</a></li>
+    <li><a href="#robustesse-healthchecks-et-timeouts">Robustesse, healthchecks et timeouts</a></li>
+  </ul>
+</nav>
+  </div>
+</div>
+
+    <div class="post-content">
+        <h2 id="configuration">Configuration</h2>
+<p>La configuration d&rsquo;un service doit être optionnelle et tous ses paramètres doivent avoir une valeur par défaut :</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="color:#00f">const</span> ELASTICSEARCH_HOST = process.env.ELASTICSEARCH_HOST || <span style="color:#009c00">&#39;localhost&#39;</span>;
+</code></pre></td></tr></table>
+</div>
+</div><p>Ou encore :</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">ELASTICSEARCH_HOST=<span style="color:#009c00">${</span>$ELASTICSEARCH_HOST<span style="color:#00f">:-</span>localhost<span style="color:#009c00">}</span> 
+</code></pre></td></tr></table>
+</div>
+</div><p>Chaque élément de configuration doit être modifiable par une variable d&rsquo;environnement correctement nommée. L&rsquo;intérêt est de permettre de changer le comportement de l&rsquo;application au <em>runtime</em> plutôt qu&rsquo;au <em>buildtime</em>. De plus, l&rsquo;usage d&rsquo;orchestrateurs de conteneurs comme <em>Docker Swarm</em> ou <em>Kubernetes</em> rendent plus pratique le passage de variables d&rsquo;environnement que de fichiers de configuration.</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#00f">apiVersion</span>: v1
+<span style="color:#00f">kind</span>: Pod
+<span style="color:#00f">metadata</span>:
+  <span style="color:#00f">name</span>: foo
+<span style="color:#00f">spec</span>:
+  <span style="color:#00f">containers</span>:
+  - <span style="color:#00f">name</span>: foo
+    <span style="color:#00f">image</span>: foo:1.0
+    <span style="color:#00f">env</span>:
+    - <span style="color:#00f">name</span>: ELASTICSEARCH_HOST
+      <span style="color:#00f">value</span>: <span style="color:#009c00">&#34;elasticsearch.example.com&#34;</span>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="signaux-et-fermeture">Signaux et fermeture</h2>
+<p>Une application doit être en mesure de réagir aux <a href="http://man7.org/linux/man-pages/man7/signal.7.html">signaux</a> envoyés par l&rsquo;OS et en tirer parti. Par exemple, <a href="https://prometheus.io">Prometheus</a> recharge sa configuration à la réception d&rsquo;un SIGHUP :</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ kill -HUP 1234
+INFO[1234] Loading configuration file prometheus.yml source=main.go:201
+INFO[1234] Stopping target manager... source=targetmanager.go:281
+INFO[1234] Target manager stopped. source=targetmanager.go:216
+INFO[1234] Starting target manager... source=targetmanager.go:122
+</code></pre></td></tr></table>
+</div>
+</div><p>L&rsquo;application doit s&rsquo;éteindre proprement lorsqu&rsquo;elle reçoit un <code>SIGTERM</code>. Elle doit pouvoir nettoyer tous les éléments externes dont elle a eu besoin : connections ouvertes, caches utilisés, fichiers ouverts, fichiers temporaires créés, etc&hellip;</p>
+<h2 id="logs">Logs</h2>
+<p>La gestion des logs est souvent bien plus complexe que ce que l&rsquo;on pense. Il est donc généralement intéressant de faire usage d&rsquo;une librairie dédiée. Cette librairie est en charge de différents paramètres :</p>
+<ul>
+<li>format : JSON, clé-valeur</li>
+<li>contexte : date et heure, module émétteur</li>
+<li>export : réseau (<code>tcp/udp</code>, <code>http</code>, <code>kafka</code>, &hellip;), <code>syslog</code>, fichiers</li>
+<li>rotation</li>
+</ul>
+<p>Dans le cas d&rsquo;un microservice, l&rsquo;application ne doit pas s&rsquo;occuper du routage et du stockage de ses logs. Elle doit simplement écrire dans <code>stdout</code> et <code>stderr</code> en fonction des besoins, et laisser un routeur de logs (comme <a href="https://github.com/fluent/fluentd">fluentd</a> ou <a href="https://www.elastic.co/products/beats/filebeat">filebeat</a>) gérer et acheminer les logs.</p>
+<p>Chaque message de log doit être associé au bon niveau (<code>debug</code>, <code>info</code>, <code>warn</code>, <code>error</code>, &hellip;) pour qu&rsquo;il puisse être affiché et/ou traité de façon optimale. Il peut être intéressant d&rsquo;afficher un message pour certains cas :</p>
+<ul>
+<li>Message de démarrage de l&rsquo;application;</li>
+<li>Ports sur lesquels elle écoute;</li>
+<li>Services auxquels elle est connectée;</li>
+<li>Évènements prévus et imprévus;</li>
+<li>Signaux reçus;</li>
+<li>Fermeture;</li>
+</ul>
+<blockquote>
+<p>[foo] [INFO] Listening on port 80</p>
+</blockquote>
+<blockquote>
+<p>[foo] [INFO] Connected to mysql://foo:bar@host:port/database. Alive and kicking !</p>
+</blockquote>
+<blockquote>
+<p>&hellip;</p>
+</blockquote>
+<blockquote>
+<p>[foo] [INFO] SIGHUP received. Reloading configuration</p>
+</blockquote>
+<blockquote>
+<p>&hellip;</p>
+</blockquote>
+<blockquote>
+<p>[foo] [INFO] Shutting down&hellip; Closing connexions, removing temporary files</p>
+</blockquote>
+<h2 id="choix-du-langage">Choix du langage</h2>
+<h3 id="éviter-les-langages-à-machines-virtuelles">Éviter les langages à machines virtuelles</h3>
+<p>Les langages basés sur des machines virtuelles (Java, Clojure, Erlang, .NET) sont plus lents à démarrer et ont nécessairement besoin de plus de ressources. De plus, ces machines virtuelles sont généralement conçues pour gérer de large applications monolithiques qui ont besoin de fonctionnalités avancées de gestion de mémoire, de CPU, de threads, etc&hellip; Ces fonctionnalités sont redondantes avec les orchestrateurs et les runtimes et peuvent créer des conflits, comme par exemple la JVM qui ne supporte pas (ou mal) les limites de CPU et de mémoire définies dans un conteneur. Seules les <a href="https://bugs.openjdk.java.net/browse/JDK-8196595">versions les plus récentes du JDK 10</a> permettent une prise en charge correcte de ces paramètres.</p>
+<h3 id="créer-des-binaires-statiques">Créer des binaires statiques</h3>
+<p>Utiliser un langage qui crée des binaires statiques présente plusieurs avantages :</p>
+<ul>
+<li>le binaire est portable : les librairies liées sont distribuées avec le binaire;</li>
+<li>il n&rsquo;est pas nécessaire d&rsquo;avoir une arborescence complète d&rsquo;un OS (<code>/bin</code>, <code>/usr/bin</code>, <code>/tmp</code>, etc&hellip;) pour exécuter le binaire;</li>
+<li>la construction du binaire est prévisible;</li>
+<li>le binaire est moins sensible aux contaminations de ses librairies par des tierces-parties;</li>
+</ul>
+<p>C&rsquo;est avec toutes ces contraintes que des langages comme <a href="https://golang.org/">Go</a> et <a href="https://www.rust-lang.org/">Rust</a> ont vu leur popularité croître énormément ces dernière années.</p>
+<p>Pour un même programme C++ :</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#f00;font-style:italic">#include</span> <span style="color:#f00;font-style:italic">&lt;iostream&gt;</span><span style="color:#f00;font-style:italic">
+</span><span style="color:#f00;font-style:italic"></span>
+<span style="color:#00f">int</span> <span style="color:#c34e00">main</span>() {
+    std::cout &lt;&lt; <span style="color:#009c00">&#34;Foo&#34;</span>;
+    <span style="color:#00f">return</span> 0;
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>Le binaire compilé dynamiquement pèse 7.8Ko contre 1.6Mo statiquement. La différence vient de la présence (ou non) des librairies nécessaires au sein du binaire.</p>
+<p>La commande <code>ldd</code> permet de connaître les librairies liées au binaire :</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ g++ -o foo foo.cpp
+$ ldd foo
+	linux-vdso.so.1 (0x00007fffc9ff8000)
+	libstdc++.so.6 =&gt; /usr/lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f6c9c4b6000)
+	libm.so.6 =&gt; /lib/x86_64-linux-gnu/libm.so.6 (0x00007f6c9c1b5000)
+	libgcc_s.so.1 =&gt; /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f6c9bf9f000)
+	libc.so.6 =&gt; /lib/x86_64-linux-gnu/libc.so.6 (0x00007f6c9bbf4000)
+	/lib64/ld-linux-x86-64.so.2 (0x00007f6c9c7c1000)
+</code></pre></td></tr></table>
+</div>
+</div><p>Mon binaire <code>foo</code> requiert notamment <code>libstdc++.so.6 </code> (<code>/usr/lib/x86_64-linux-gnu/libstdc++.so.6</code>) et <code>libc.so.6</code> (<code>/lib/x86_64-linux-gnu/libc.so.6</code>). Si je distribue ce binaire sur une autre machine, il faudra non seulement qu&rsquo;elle tourne sur le même OS, mais aussi que les librairies soient les mêmes (chemin et version) :</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ mv /lib/x86_64-linux-gnu/libc.so.6 /lib/x86_64-linux-gnu/libc.so.6.old
+$ ./foo
+./foo: error <span style="color:#00f">while</span> loading shared libraries: libc.so.6: cannot open shared object file: No such file or directory
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="stateless-vs-stateful">Stateless vs Stateful</h2>
+<p>Un bon conteneur est un conteneur que l&rsquo;on peut déplacer et redémarrer à la demande, sans pré-requis. Il faut donc qu&rsquo;il soit le plus possible <code>stateless</code> : toutes les données persistantes dont a besoin l&rsquo;application doivent être stockées dans des systèmes externes comme une base de données. Il ne doit pas y avoir de différence entre plusieurs instances d&rsquo;une application.</p>
+<h2 id="robustesse-healthchecks-et-timeouts">Robustesse, healthchecks et timeouts</h2>
+<p>L&rsquo;application doit être en mesure de gérer les erreurs via une dégradation de service ou via du <em>back-off</em> plutôt que de crasher. Elle doit pouvoir non-seulement répondre à des <em>health checks</em> (via une route http par exemple) mais aussi en émettre afin de surveiller la disponibilité des services liés.</p>
+<p>À un stade plus avancé, l&rsquo;application doit supporter des mécanismes plus complexes comme les <em>timeouts</em>, le <em>throttling</em> et les <a href="https://en.wikipedia.org/wiki/Circuit_breaker_design_pattern">circuit-breakers</a>.</p>
+
+    </div>
+
+    
+<footer class="post-footer">
+        
+        <nav class="post-nav">
+            <a class="prev" href="/patcher-selon-la-rfc/">
+                <i class="iconfont icon-left"></i>
+                <span class="prev-text nav-default">PATCH-er selon la RFC</span>
+                <span class="prev-text nav-mobile">Précédent</span>
+            </a>
+            
+            <a class="next" href="/sharding-proprietes-et-fonctionnement/">
+                <span class="next-text nav-default">Sharding : Propriétés et fonctionnement</span>
+                <span class="next-text nav-mobile">Suivant</span>
+                <i class="iconfont icon-right"></i>
+            </a>
+        </nav>
+    </footer>
+</article>
+        </div>
+        
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+  <a href="https://stackoverflow.com/users/5515387" class="iconfont icon-stack-overflow" title="stack-overflow"></a>
+  <a href="https://twitter.com/jerome_pin" class="iconfont icon-twitter" title="twitter"></a>
+  <a href="https://github.com/jeromepin" class="iconfont icon-github" title="github"></a>
+  <a href="https://jeromepin.fr/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="report-error">
+  <p>
+    Si vous trouvez une erreur, je serais ravi <a href="https://github.com/jeromepin/jeromepin.fr/issues/new">de le
+      savoir</a> !
+  </p>
+</div>
+
+
+<div class="copyright">
+  <span class="power-by">
+    Propulsé par <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Thème -
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy;
+    2017 -
+    2020
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span
+      class="author">Jérôme Pin</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/scripts/cash.min.cec498ce1797f9c2997794017bfa0bb54c2648e93d7dc8be3f674197788eb797.js" integrity="sha256-zsSYzheX&#43;cKZd5QBe/oLtUwmSOk9fci&#43;P2dBl3iOt5c="></script>
+
+
+<script type="text/javascript" src="/dist/even.26188efa.min.js"></script>
+
+
+<script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$']],
+        processEscapes: true,
+        processEnvironments: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+        TeX: {
+          equationNumbers: { autoNumber: "AMS" },
+          extensions: ["AMSmath.js", "AMSsymbols.js"]
+        }
+      }
+    });
+    MathJax.Hub.Queue(function () {
+      
+      
+      
+      var all = MathJax.Hub.getAllJax(), i;
+      for (i = 0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+    });
+
+    MathJax.Hub.Config({
+      
+      TeX: { equationNumbers: { autoNumber: "AMS" } }
+    });
+  </script>
+
+
+
+</body>
+</html>

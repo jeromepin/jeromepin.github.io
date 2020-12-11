@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Esctl: managing elasticsearch from the command line - Jérôme Pin</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=10" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author"
+  content="Jérôme Pin" /><meta name="description" content="During my month of unemployment, I spent time thinking on how I had tackled technical problems in my last year-and-half of work. The best part of my day-to-day mission was to ensure our Elasticsearch clusters were healthy, secured and efficient. To that end, I was using a combination of tools:
+ raw curl commands, bash scripts I wrote, graphical interfaces, Prometheus monitoring and alerting, Some automation, commands embedded in SaltStack  It&amp;rsquo;s easy to see there is no common way to manage those clusters, and I was relying on a bunch of disparate stuff." /><meta name="keywords"
+  content="" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.74.1 with even 4.0.0" />
+
+
+<link rel="canonical" href="https://jeromepin.fr/esctl-managing-elasticsearch-from-command-line/" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+<link href="/dist/even.5bb5d238.min.css" rel="stylesheet">
+<link rel="stylesheet" href="/css/override.min.94a081c052a26663f151b76dee7ee555de4c4fef01d038c5ea6c7758a708c7ec.css" integrity="sha256-lKCBwFKiZmPxUbdt7n7lVd5MT&#43;8B0DjF6mx3WKcIx&#43;w=" />
+
+<meta property="og:title" content="Esctl: managing elasticsearch from the command line" />
+<meta property="og:description" content="During my month of unemployment, I spent time thinking on how I had tackled technical problems in my last year-and-half of work. The best part of my day-to-day mission was to ensure our Elasticsearch clusters were healthy, secured and efficient. To that end, I was using a combination of tools:
+ raw curl commands, bash scripts I wrote, graphical interfaces, Prometheus monitoring and alerting, Some automation, commands embedded in SaltStack  It&rsquo;s easy to see there is no common way to manage those clusters, and I was relying on a bunch of disparate stuff." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://jeromepin.fr/esctl-managing-elasticsearch-from-command-line/" />
+<meta property="article:published_time" content="2019-09-22T22:08:00+01:00" />
+<meta property="article:modified_time" content="2019-09-22T22:08:00+01:00" />
+<meta itemprop="name" content="Esctl: managing elasticsearch from the command line">
+<meta itemprop="description" content="During my month of unemployment, I spent time thinking on how I had tackled technical problems in my last year-and-half of work. The best part of my day-to-day mission was to ensure our Elasticsearch clusters were healthy, secured and efficient. To that end, I was using a combination of tools:
+ raw curl commands, bash scripts I wrote, graphical interfaces, Prometheus monitoring and alerting, Some automation, commands embedded in SaltStack  It&rsquo;s easy to see there is no common way to manage those clusters, and I was relying on a bunch of disparate stuff.">
+<meta itemprop="datePublished" content="2019-09-22T22:08:00&#43;01:00" />
+<meta itemprop="dateModified" content="2019-09-22T22:08:00&#43;01:00" />
+<meta itemprop="wordCount" content="1705">
+
+
+
+<meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Esctl: managing elasticsearch from the command line"/>
+<meta name="twitter:description" content="During my month of unemployment, I spent time thinking on how I had tackled technical problems in my last year-and-half of work. The best part of my day-to-day mission was to ensure our Elasticsearch clusters were healthy, secured and efficient. To that end, I was using a combination of tools:
+ raw curl commands, bash scripts I wrote, graphical interfaces, Prometheus monitoring and alerting, Some automation, commands embedded in SaltStack  It&rsquo;s easy to see there is no common way to manage those clusters, and I was relying on a bunch of disparate stuff."/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Jérôme Pin</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div>
+  <div class="logo-wrapper">
+    <a href="/" class="logo">Jérôme Pin</a>
+  </div>
+</div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+        <h1 class="post-title">Esctl: managing elasticsearch from the command line</h1>
+
+        <div class="post-meta">
+            <span class="post-time"> 22 Sep </span>
+            
+            
+        </div>
+    </header>
+
+    
+<div class="post-toc" id="post-toc">
+  
+  <div
+    class="post-toc-content always-active">
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#the-problem">The problem</a>
+      <ul>
+        <li></li>
+      </ul>
+    </li>
+    <li><a href="#requirements">Requirements</a></li>
+    <li><a href="#the-solution">The solution</a>
+      <ul>
+        <li></li>
+      </ul>
+    </li>
+    <li><a href="#what-a-subcommand-look-likes">What a subcommand look likes</a></li>
+  </ul>
+</nav>
+  </div>
+</div>
+
+    <div class="post-content">
+        <p>During my month of unemployment, I spent time thinking on how I had tackled technical problems in my last year-and-half of work. The best part of my day-to-day mission was to ensure our Elasticsearch clusters were healthy, secured and efficient. To that end, I was using a combination of tools:</p>
+<ul>
+<li>raw <code>curl</code> commands,</li>
+<li>bash scripts I wrote,</li>
+<li>graphical interfaces,</li>
+<li>Prometheus monitoring and alerting,</li>
+<li>Some automation,</li>
+<li>commands embedded in SaltStack</li>
+</ul>
+<p>It&rsquo;s easy to see there is no common way to manage those clusters, and I was relying on a bunch of disparate stuff.</p>
+<h2 id="the-problem">The problem</h2>
+<p>The issue does not come from Elasticsearch itself but is inherent to any software that exposes an HTTP API to manage itself: curl-of-the-death.</p>
+<p>Here are some commands I used to run on a regular basis (examples come from <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html">Elasticsearch&rsquo;s documentation</a>).</p>
+<h4 id="list-indices">List indices</h4>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ curl -X GET <span style="color:#009c00">&#34;localhost:9200/_cat/indices&#34;</span>
+yellow open foo VrIiXmIRRA6BNP5JWaXKqA 1 1 0 0 283b 283b
+</code></pre></td></tr></table>
+</div>
+</div><h4 id="change-the-number-of-replicas-of-a-given-index">Change the number of replicas of a given index</h4>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ curl -X PUT <span style="color:#009c00">&#34;localhost:9200/twitter/_settings?pretty&#34;</span> -H <span style="color:#009c00">&#39;Content-Type: application/json&#39;</span> -d<span style="color:#009c00">&#39;
+</span><span style="color:#009c00">{
+</span><span style="color:#009c00">    &#34;index&#34; : {
+</span><span style="color:#009c00">        &#34;number_of_replicas&#34; : 2
+</span><span style="color:#009c00">    }
+</span><span style="color:#009c00">}
+</span><span style="color:#009c00">&#39;</span>
+</code></pre></td></tr></table>
+</div>
+</div><h4 id="reset-a-indexs-refresh-interval-to-its-default-value">Reset a index&rsquo;s refresh interval to its default value</h4>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ curl -X PUT <span style="color:#009c00">&#34;localhost:9200/twitter/_settings?pretty&#34;</span> -H <span style="color:#009c00">&#39;Content-Type: application/json&#39;</span> -d<span style="color:#009c00">&#39;
+</span><span style="color:#009c00">{
+</span><span style="color:#009c00">    &#34;index&#34; : {
+</span><span style="color:#009c00">        &#34;refresh_interval&#34; : null
+</span><span style="color:#009c00">    }
+</span><span style="color:#009c00">}
+</span><span style="color:#009c00">&#39;</span>
+</code></pre></td></tr></table>
+</div>
+</div><h4 id="pretty-print-cluster-stats">Pretty-print cluster stats</h4>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ curl -X GET <span style="color:#009c00">&#34;localhost:9200/_cluster/stats&#34;</span>
+{
+    <span style="color:#009c00">&#34;_nodes&#34;</span>: {
+        <span style="color:#009c00">&#34;total&#34;</span>: 1,
+        <span style="color:#009c00">&#34;successful&#34;</span>: 1,
+        <span style="color:#009c00">&#34;failed&#34;</span>: 0
+    },
+    ...
+    <span style="color:#009c00">&#34;nodes&#34;</span>: {
+        <span style="color:#009c00">&#34;count&#34;</span>: {
+            <span style="color:#009c00">&#34;total&#34;</span>: 1,
+            <span style="color:#009c00">&#34;data&#34;</span>: 1,
+            <span style="color:#009c00">&#34;coordinating_only&#34;</span>: 0,
+            <span style="color:#009c00">&#34;master&#34;</span>: 1,
+            <span style="color:#009c00">&#34;ingest&#34;</span>: 1
+        },
+        <span style="color:#009c00">&#34;versions&#34;</span>: [
+            <span style="color:#009c00">&#34;7.2.1&#34;</span>
+        ],
+        <span style="color:#009c00">&#34;jvm&#34;</span>: {
+            <span style="color:#009c00">&#34;max_uptime_in_millis&#34;</span>: 1565394,
+            <span style="color:#009c00">&#34;versions&#34;</span>: [
+                {
+                    <span style="color:#009c00">&#34;version&#34;</span>: <span style="color:#009c00">&#34;12.0.1&#34;</span>,
+                    <span style="color:#009c00">&#34;vm_name&#34;</span>: <span style="color:#009c00">&#34;OpenJDK 64-Bit Server VM&#34;</span>,
+                    <span style="color:#009c00">&#34;vm_version&#34;</span>: <span style="color:#009c00">&#34;12.0.1+12&#34;</span>,
+                    <span style="color:#009c00">&#34;vm_vendor&#34;</span>: <span style="color:#009c00">&#34;Oracle Corporation&#34;</span>,
+                    <span style="color:#009c00">&#34;bundled_jdk&#34;</span>: true,
+                    <span style="color:#009c00">&#34;using_bundled_jdk&#34;</span>: true,
+                    <span style="color:#009c00">&#34;count&#34;</span>: 1
+                }
+            ],
+            <span style="color:#009c00">&#34;mem&#34;</span>: {
+                <span style="color:#009c00">&#34;heap_used_in_bytes&#34;</span>: 128029720,
+                <span style="color:#009c00">&#34;heap_max_in_bytes&#34;</span>: 1056309248
+            },
+            <span style="color:#009c00">&#34;threads&#34;</span>: 31
+        },
+        ...
+    }
+}
+</code></pre></td></tr></table>
+</div>
+</div><h4 id="reroute-shard-0-of-index-test-from-node1-to-node2">Reroute shard 0 of index &lsquo;test&rsquo; from node1 to node2</h4>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ curl -X POST <span style="color:#009c00">&#34;localhost:9200/_cluster/reroute?pretty&#34;</span> -H <span style="color:#009c00">&#39;Content-Type: application/json&#39;</span> -d<span style="color:#009c00">&#39;
+</span><span style="color:#009c00">{
+</span><span style="color:#009c00">    &#34;commands&#34; : [
+</span><span style="color:#009c00">        {
+</span><span style="color:#009c00">            &#34;move&#34; : {
+</span><span style="color:#009c00">                &#34;index&#34; : &#34;test&#34;, &#34;shard&#34; : 0,
+</span><span style="color:#009c00">                &#34;from_node&#34; : &#34;node1&#34;, &#34;to_node&#34; : &#34;node2&#34;
+</span><span style="color:#009c00">            }
+</span><span style="color:#009c00">        }
+</span><span style="color:#009c00">    ]
+</span><span style="color:#009c00">}
+</span><span style="color:#009c00">&#39;</span>
+</code></pre></td></tr></table>
+</div>
+</div><h4 id="change-clusters-transient-setting-indicesrecoverymax_bytes_per_sec-to-20mb">Change cluster&rsquo;s transient setting &lsquo;indices.recovery.max_bytes_per_sec&rsquo; to 20mb</h4>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ curl -X PUT <span style="color:#009c00">&#34;localhost:9200/_cluster/settings?flat_settings=true&amp;pretty&#34;</span> -H <span style="color:#009c00">&#39;Content-Type: application/json&#39;</span> -d<span style="color:#009c00">&#39;
+</span><span style="color:#009c00">{
+</span><span style="color:#009c00">    &#34;transient&#34; : {
+</span><span style="color:#009c00">        &#34;indices.recovery.max_bytes_per_sec&#34; : &#34;20mb&#34;
+</span><span style="color:#009c00">    }
+</span><span style="color:#009c00">}
+</span><span style="color:#009c00">&#39;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>Commands are short, but if I need to pass URL parameters, content type, HTTP verb and a full JSON body, they are no longer short&hellip;</p>
+<p>Of course, I could use some bash alias to hide the <code>-H 'Content-Type: application/json'</code>, or maybe use the excellent <a href="https://httpie.org/">HTTPie</a> but the biggest pain comes from the JSON body!</p>
+<h2 id="requirements">Requirements</h2>
+<p>I needed a tool which could abstract all those long curl commands and could be flexible enough. After looking on the Internet, it appeared the few tools already written didn&rsquo;t support commands I needed. Thus, I decided to write my own, and I came with a list of requirements:</p>
+<table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Easy and fast to write</td>
+<td>Python : high-level, easy to read and write, I know it well</td>
+</tr>
+<tr>
+<td>Fast to use</td>
+<td>Command-line</td>
+</tr>
+<tr>
+<td>Abstract/hide params</td>
+<td>Command-line params and integrated help ! I don&rsquo;t want to remember what verb to use, what URL params to give, what to put in the JSON body, etc&hellip;</td>
+</tr>
+<tr>
+<td>Don&rsquo;t spend time on building CLI</td>
+<td><a href="https://github.com/openstack/cliff">Openstack&rsquo;s Cliff</a></td>
+</tr>
+<tr>
+<td>Easy to switch cluster, without remembering long server name</td>
+<td>Config file</td>
+</tr>
+<tr>
+<td>Each cluster may have different setup (ssl, auth, etc&hellip;)</td>
+<td>Config file</td>
+</tr>
+<tr>
+<td>Nice and pretty output</td>
+<td><a href="https://github.com/openstack/cliff">Cliff</a> comes with <a href="https://pypi.org/project/PrettyTable/">PrettyTable</a></td>
+</tr>
+<tr>
+<td>Inspiration</td>
+<td><a href="https://github.com/openstack/python-openstackclient">Openstack&rsquo;s CLI</a> and <a href="https://kubernetes.io/docs/reference/kubectl/overview/">kubectl</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="the-solution">The solution</h2>
+<p>I ended up writing <a href="https://github.com/jeromepin/esctl">esctl</a>. It checks all my requirements and it&rsquo;s very easy to add new features by inheriting a class based on the output type.</p>
+<figure>
+    <img src="/images/esctl-CLI-design-tree.svg"
+         alt="Esctl subcommands taxonomy"/> <figcaption>
+            <h4>Esctl subcommands taxonomy</h4>
+        </figcaption>
+</figure>
+
+<p>It relies on a config file (inspired by <code>kubectl</code>) to declare settings (global and cluster-wide), clusters, users and contexts (an association of a user and a cluster) :</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#00f">settings</span>:
+  <span style="color:#00f">no_check_certificate</span>: <span style="color:#00f">true</span>
+  <span style="color:#00f">max_retries</span>: 0
+  <span style="color:#00f">timeout</span>: 20
+
+<span style="color:#00f">clusters</span>:
+  <span style="color:#00f">localhost</span>:
+    <span style="color:#00f">servers</span>:
+    - http://localhost:9200
+
+  <span style="color:#00f">foo01-prd-sfo</span>:
+    <span style="color:#00f">servers</span>:
+    - https://master01-foo01-prd-sfo1.example.com
+    - https://master02-foo01-prd-sfo2.example.com
+    - https://master03-foo01-prd-sfo3.example.com
+    <span style="color:#00f">settings</span>:
+      <span style="color:#00f">timeout</span>: 60
+
+<span style="color:#00f">users</span>:
+  <span style="color:#00f">jerome</span>:
+    <span style="color:#00f">username</span>: jerome
+    <span style="color:#00f">password</span>: P@ssw0rD
+
+<span style="color:#00f">contexts</span>:
+  <span style="color:#00f">localhost</span>:
+    <span style="color:#00f">cluster</span>: localhost
+
+  <span style="color:#00f">production</span>:
+    <span style="color:#00f">user</span>: jerome
+    <span style="color:#00f">cluster</span>: foo01-prd-sfo
+
+<span style="color:#00f">default-context</span>: localhost
+</code></pre></td></tr></table>
+</div>
+</div><p>Esctl provides a lot of commands and subcommands to manage Elasticsearch:</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">usage: esctl [--version] [-v | -q] [--log-file LOG_FILE] [-h] [--debug] [--context CONTEXT]
+
+esctl
+
+optional arguments:
+  --version            show program&#39;s version number and exit
+  -v, --verbose        Increase verbosity of output. Can be repeated.
+  -q, --quiet          Suppress output except warnings and errors.
+  --log-file LOG_FILE  Specify a file to log output. Disabled by default.
+  -h, --help           Show help message and exit.
+  --debug              Show tracebacks on errors.
+  --context CONTEXT    Context to use
+
+Commands:
+  cat allocation                     Show shard allocation.
+  cluster allocation explain         Provide explanations for shard allocations in the cluster.
+  cluster health                     Retrieve the cluster health.
+  cluster routing allocation enable  Change the routing allocation status.
+  cluster stats                      Retrieve the cluster status.
+  complete                           print bash completion command (cliff)
+  config context list                List all contexts.
+  help                               print detailed help for another command (cliff)
+  index close                        Close an index.
+  index create                       Create an index.
+  index delete                       Delete an index.
+  index list                         List all indices.
+  index open                         Open an index.
+  logging get                        Get a logger value.
+  logging reset                      Reset a logger value.
+  logging set                        Set a logger value.
+  node hot-threads                   Print hot threads on each nodes.
+  node list                          List nodes.
+</code></pre></td></tr></table>
+</div>
+</div><p>It allows to dramatically shorten previously shown commands :</p>
+<h4 id="list-indices-1">List indices</h4>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ esctl index list
++-------+--------+--------+------------------------+---------+---------+------------+--------------+------------+--------------------+
+| Index | Health | Status | UUID                   | Primary | Replica | Docs Count | Docs Deleted | Store Size | Primary Store Size |
++-------+--------+--------+------------------------+---------+---------+------------+--------------+------------+--------------------+
+| foo   | yellow | open   | VrIiXmIRRA6BNP5JWaXKqA | 1       | 1       | 0          | 0            | 283b       | 283b               |
++-------+--------+--------+------------------------+---------+---------+------------+--------------+------------+--------------------+
+</code></pre></td></tr></table>
+</div>
+</div><h4 id="change-the-number-of-replicas-of-a-given-index-1">Change the number of replicas of a given index</h4>
+<p><em>Not implemented yet. Would look like :</em></p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ esctl index settings set number_of_replicas 2 --index=twitter
+</code></pre></td></tr></table>
+</div>
+</div><h4 id="reset-a-indexs-refresh-interval-to-its-default-value-1">Reset a index&rsquo;s refresh interval to its default value</h4>
+<p><em>Not implemented yet. Would look like :</em></p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ esctl index settings reset refresh_interval --index=twitter
+</code></pre></td></tr></table>
+</div>
+</div><h4 id="pretty-print-cluster-stats-1">Pretty-print cluster stats</h4>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ esctl cluster stats
++------------------------------------------------+------------------------------+
+| Attribute                                      |                        Value |
++------------------------------------------------+------------------------------+
+| _nodes.failed                                  |                            0 |
+| _nodes.successful                              |                            1 |
+| _nodes.total                                   |                            1 |
+...
+| nodes.count.coordinating_only                  |                            0 |
+| nodes.count.data                               |                            1 |
+| nodes.count.ingest                             |                            1 |
+| nodes.count.master                             |                            1 |
+| nodes.count.total                              |                            1 |
+| nodes.discovery_types.single-node              |                            1 |
+| nodes.fs.available_in_bytes                    |                  48388599808 |
+| nodes.fs.free_in_bytes                         |                  51605315584 |
+| nodes.fs.total_in_bytes                        |                  62725623808 |
+| nodes.jvm.max_uptime_in_millis                 |                      1565394 |
+| nodes.jvm.mem.heap_max_in_bytes                |                   1056309248 |
+| nodes.jvm.mem.heap_used_in_bytes               |                    128029720 |
+| nodes.jvm.threads                              |                           31 |
+| nodes.jvm.versions[0].bundled_jdk              |                         True |
+| nodes.jvm.versions[0].count                    |                            1 |
+| nodes.jvm.versions[0].using_bundled_jdk        |                         True |
+| nodes.jvm.versions[0].version                  |                       12.0.1 |
+| nodes.jvm.versions[0].vm_name                  |     OpenJDK 64-Bit Server VM |
+| nodes.jvm.versions[0].vm_vendor                |           Oracle Corporation |
+| nodes.jvm.versions[0].vm_version               |                    12.0.1+12 |
+...
+| status                                         |                       yellow |
+| timestamp                                      |                1565893455640 |
++------------------------------------------------+------------------------------+
+</code></pre></td></tr></table>
+</div>
+</div><h4 id="reroute-shard-0-of-index-test-from-node1-to-node2-1">Reroute shard 0 of index &lsquo;test&rsquo; from node1 to node2</h4>
+<p><em>Not implemented yet</em></p>
+<h4 id="change-clusters-transient-setting-indicesrecoverymax_bytes_per_sec-to-20mb-1">Change cluster&rsquo;s transient setting &lsquo;indices.recovery.max_bytes_per_sec&rsquo; to 20mb</h4>
+<p><em>Not implemented yet. Would look like :</em></p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ esctl cluster settings set --transient indices.recovery.max_bytes_per_sec 20mb
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="what-a-subcommand-look-likes">What a subcommand look likes</h2>
+<p>I created 3 output class based on Cliff&rsquo;s ones:</p>
+<ul>
+<li><code>EsctlCommand</code> : Doesn&rsquo;t expect any output</li>
+<li><code>EsctlLister</code> : Expect a list of elements in order to create a multi-columns table</li>
+<li><code>EsctlShowOne</code> : Expect a key-value list to create a two-columns table</li>
+</ul>
+<p>To add a new subcommand, I only need to choose the output class (and inherit my class from it) and write the <code>take_action</code> method:</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#00f">def</span> <span style="color:#c34e00">take_action</span>(self, parsed_args):
+    <span style="color:#009c00">&#34;&#34;&#34;Generate or retrieve data to be displayed.
+</span><span style="color:#009c00">
+</span><span style="color:#009c00">    Arguments:
+</span><span style="color:#009c00">        parsed_args {argparse.Namespace} -- Arguments from the command line.
+</span><span style="color:#009c00">
+</span><span style="color:#009c00">    Returns:
+</span><span style="color:#009c00">        Any -- The data to be displayed, as specified by Cliff
+</span><span style="color:#009c00">    &#34;&#34;&#34;</span>
+
+    <span style="color:#00f">return</span> data
+</code></pre></td></tr></table>
+</div>
+</div><p>Here is, as a sample, the class associated to the <code>esctl cluster health</code> command:</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#00f">class</span> <span style="color:#007575">ClusterHealth</span>(EsctlShowOne):
+    <span style="color:#009c00">&#34;&#34;&#34;Retrieve the cluster health.&#34;&#34;&#34;</span>
+
+    <span style="color:#00f">def</span> <span style="color:#c34e00">take_action</span>(self, parsed_args):
+        <span style="color:#f00;font-style:italic"># Retrieve the cluster health using the appropriate elasticsearch-py function. Then order the output and sort it</span>
+        health = self._sort_and_order_dict(Esctl._es.cluster.health())
+
+        <span style="color:#f00;font-style:italic"># Add coloration of the &#34;status&#34; (RED, YELLOW, GREEN) key based on it&#39;s value</span>
+        health[<span style="color:#009c00">&#34;status&#34;</span>] = Color.colorize(
+            health.get(<span style="color:#009c00">&#34;status&#34;</span>), getattr(Color, health.get(<span style="color:#009c00">&#34;status&#34;</span>).upper())
+        )
+
+        <span style="color:#f00;font-style:italic"># Return a tuple of tuple. It will lead to a two-column table : &#34;Attribute&#34; and &#34;Value&#34;</span>
+        <span style="color:#00f">return</span> (tuple(health.keys()), tuple(health.values()))
+</code></pre></td></tr></table>
+</div>
+</div><p>Which will display :</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">+----------------------------------+----------------+
+| Field                            | Value          |
++----------------------------------+----------------+
+| active_primary_shards            | 0              |
+| active_shards                    | 0              |
+| active_shards_percent_as_number  | 100.0          |
+| cluster_name                     | docker-cluster |
+| delayed_unassigned_shards        | 0              |
+| initializing_shards              | 0              |
+| number_of_data_nodes             | 1              |
+| number_of_in_flight_fetch        | 0              |
+| number_of_nodes                  | 1              |
+| number_of_pending_tasks          | 0              |
+| relocating_shards                | 0              |
+| status                           | green          |
+| task_max_waiting_in_queue_millis | 0              |
+| timed_out                        | False          |
+| unassigned_shards                | 0              |
++----------------------------------+----------------+
+</code></pre></td></tr></table>
+</div>
+</div><p>Instead of :</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+  &#34;cluster_name&#34; : <span style="color:#009c00">&#34;docker-cluster&#34;</span>,
+  &#34;status&#34; : <span style="color:#009c00">&#34;green&#34;</span>,
+  &#34;timed_out&#34; : <span style="color:#00f">false</span>,
+  &#34;number_of_nodes&#34; : 1,
+  &#34;number_of_data_nodes&#34; : 1,
+  &#34;active_primary_shards&#34; : 0,
+  &#34;active_shards&#34; : 0,
+  &#34;relocating_shards&#34; : 0,
+  &#34;initializing_shards&#34; : 0,
+  &#34;unassigned_shards&#34; : 0,
+  &#34;delayed_unassigned_shards&#34; : 0,
+  &#34;number_of_pending_tasks&#34; : 0,
+  &#34;number_of_in_flight_fetch&#34; : 0,
+  &#34;task_max_waiting_in_queue_millis&#34; : 0,
+  &#34;active_shards_percent_as_number&#34; : 100.0
+}
+</code></pre></td></tr></table>
+</div>
+</div>
+    </div>
+
+    
+<footer class="post-footer">
+        
+        <nav class="post-nav">
+            <a class="prev" href="/timeseries-cardinalite-et-explosion/">
+                <i class="iconfont icon-left"></i>
+                <span class="prev-text nav-default">Timeseries : Cardinalité et explosion</span>
+                <span class="prev-text nav-mobile">Précédent</span>
+            </a>
+            
+            <a class="next" href="/patcher-selon-la-rfc/">
+                <span class="next-text nav-default">PATCH-er selon la RFC</span>
+                <span class="next-text nav-mobile">Suivant</span>
+                <i class="iconfont icon-right"></i>
+            </a>
+        </nav>
+    </footer>
+</article>
+        </div>
+        
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+  <a href="https://stackoverflow.com/users/5515387" class="iconfont icon-stack-overflow" title="stack-overflow"></a>
+  <a href="https://twitter.com/jerome_pin" class="iconfont icon-twitter" title="twitter"></a>
+  <a href="https://github.com/jeromepin" class="iconfont icon-github" title="github"></a>
+  <a href="https://jeromepin.fr/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="report-error">
+  <p>
+    Si vous trouvez une erreur, je serais ravi <a href="https://github.com/jeromepin/jeromepin.fr/issues/new">de le
+      savoir</a> !
+  </p>
+</div>
+
+
+<div class="copyright">
+  <span class="power-by">
+    Propulsé par <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Thème -
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy;
+    2017 -
+    2020
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span
+      class="author">Jérôme Pin</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/scripts/cash.min.cec498ce1797f9c2997794017bfa0bb54c2648e93d7dc8be3f674197788eb797.js" integrity="sha256-zsSYzheX&#43;cKZd5QBe/oLtUwmSOk9fci&#43;P2dBl3iOt5c="></script>
+
+
+<script type="text/javascript" src="/dist/even.26188efa.min.js"></script>
+
+
+<script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$']],
+        processEscapes: true,
+        processEnvironments: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+        TeX: {
+          equationNumbers: { autoNumber: "AMS" },
+          extensions: ["AMSmath.js", "AMSsymbols.js"]
+        }
+      }
+    });
+    MathJax.Hub.Queue(function () {
+      
+      
+      
+      var all = MathJax.Hub.getAllJax(), i;
+      for (i = 0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+    });
+
+    MathJax.Hub.Config({
+      
+      TeX: { equationNumbers: { autoNumber: "AMS" } }
+    });
+  </script>
+
+
+
+</body>
+</html>

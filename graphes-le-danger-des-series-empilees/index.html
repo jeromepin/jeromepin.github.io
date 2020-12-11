@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Graphes : Le danger des séries empilées - Jérôme Pin</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=10" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author"
+  content="Jérôme Pin" /><meta name="description" content="Le graphe suivant montre un nombre de requêtes en fonction du temps sur 4 serveurs. Les séries sont empilées afin de pouvoir facilement lire la somme de ces requêtes sur l&amp;rsquo;ensemble de l&amp;rsquo;infrastructure.
+  Exemple typiques de séries empilées : nombre de requêtes en fonction du temps sur 4 serveurs   Il est très facile d&amp;rsquo;extraire quelques informations :
+ 3 des 4 serveurs reçoivent chacun une dizaine de requêtes par seconde; L&amp;rsquo;un des serveurs reçoit plus de requêtes que les autres; L&amp;rsquo;ensemble de l&amp;rsquo;infrastructure encaisse une soixantaine de requêtes par seconde;  Pourquoi les séries empilées sont dangereuses ?" /><meta name="keywords"
+  content="" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.74.1 with even 4.0.0" />
+
+
+<link rel="canonical" href="https://jeromepin.fr/graphes-le-danger-des-series-empilees/" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+<link href="/dist/even.5bb5d238.min.css" rel="stylesheet">
+<link rel="stylesheet" href="/css/override.min.94a081c052a26663f151b76dee7ee555de4c4fef01d038c5ea6c7758a708c7ec.css" integrity="sha256-lKCBwFKiZmPxUbdt7n7lVd5MT&#43;8B0DjF6mx3WKcIx&#43;w=" />
+
+<meta property="og:title" content="Graphes : Le danger des séries empilées" />
+<meta property="og:description" content="Le graphe suivant montre un nombre de requêtes en fonction du temps sur 4 serveurs. Les séries sont empilées afin de pouvoir facilement lire la somme de ces requêtes sur l&rsquo;ensemble de l&rsquo;infrastructure.
+  Exemple typiques de séries empilées : nombre de requêtes en fonction du temps sur 4 serveurs   Il est très facile d&rsquo;extraire quelques informations :
+ 3 des 4 serveurs reçoivent chacun une dizaine de requêtes par seconde; L&rsquo;un des serveurs reçoit plus de requêtes que les autres; L&rsquo;ensemble de l&rsquo;infrastructure encaisse une soixantaine de requêtes par seconde;  Pourquoi les séries empilées sont dangereuses ?" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://jeromepin.fr/graphes-le-danger-des-series-empilees/" />
+<meta property="article:published_time" content="2020-05-03T11:33:00+01:00" />
+<meta property="article:modified_time" content="2020-05-03T11:33:00+01:00" />
+<meta itemprop="name" content="Graphes : Le danger des séries empilées">
+<meta itemprop="description" content="Le graphe suivant montre un nombre de requêtes en fonction du temps sur 4 serveurs. Les séries sont empilées afin de pouvoir facilement lire la somme de ces requêtes sur l&rsquo;ensemble de l&rsquo;infrastructure.
+  Exemple typiques de séries empilées : nombre de requêtes en fonction du temps sur 4 serveurs   Il est très facile d&rsquo;extraire quelques informations :
+ 3 des 4 serveurs reçoivent chacun une dizaine de requêtes par seconde; L&rsquo;un des serveurs reçoit plus de requêtes que les autres; L&rsquo;ensemble de l&rsquo;infrastructure encaisse une soixantaine de requêtes par seconde;  Pourquoi les séries empilées sont dangereuses ?">
+<meta itemprop="datePublished" content="2020-05-03T11:33:00&#43;01:00" />
+<meta itemprop="dateModified" content="2020-05-03T11:33:00&#43;01:00" />
+<meta itemprop="wordCount" content="371">
+
+
+
+<meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Graphes : Le danger des séries empilées"/>
+<meta name="twitter:description" content="Le graphe suivant montre un nombre de requêtes en fonction du temps sur 4 serveurs. Les séries sont empilées afin de pouvoir facilement lire la somme de ces requêtes sur l&rsquo;ensemble de l&rsquo;infrastructure.
+  Exemple typiques de séries empilées : nombre de requêtes en fonction du temps sur 4 serveurs   Il est très facile d&rsquo;extraire quelques informations :
+ 3 des 4 serveurs reçoivent chacun une dizaine de requêtes par seconde; L&rsquo;un des serveurs reçoit plus de requêtes que les autres; L&rsquo;ensemble de l&rsquo;infrastructure encaisse une soixantaine de requêtes par seconde;  Pourquoi les séries empilées sont dangereuses ?"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Jérôme Pin</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div>
+  <div class="logo-wrapper">
+    <a href="/" class="logo">Jérôme Pin</a>
+  </div>
+</div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+        <h1 class="post-title">Graphes : Le danger des séries empilées</h1>
+
+        <div class="post-meta">
+            <span class="post-time"> 3 May </span>
+            
+            
+        </div>
+    </header>
+
+    
+    <div class="post-content">
+        <p>Le graphe suivant montre un nombre de requêtes en fonction du temps sur 4 serveurs. Les séries sont empilées afin de pouvoir facilement lire la somme de ces requêtes sur l&rsquo;ensemble de l&rsquo;infrastructure.</p>
+<figure>
+    <img src="/images/graphes-le-danger-des-series-empilees/mischievous_node_first.svg"/> <figcaption>
+            <h4>Exemple typiques de séries empilées : nombre de requêtes en fonction du temps sur 4 serveurs</h4>
+        </figcaption>
+</figure>
+
+<p>Il est très facile d&rsquo;extraire quelques informations :</p>
+<ul>
+<li>3 des 4 serveurs reçoivent chacun une dizaine de requêtes par seconde;</li>
+<li>L&rsquo;un des serveurs reçoit plus de requêtes que les autres;</li>
+<li>L&rsquo;ensemble de l&rsquo;infrastructure encaisse une soixantaine de requêtes par seconde;</li>
+</ul>
+<h2 id="pourquoi-les-séries-empilées-sont-dangereuses-">Pourquoi les séries empilées sont dangereuses ?</h2>
+<p>Il semble aussi évident que l&rsquo;infrastructure a vu une chute massive des requêtes sur chacun des noeuds.</p>
+<p>En réordonnant les séries en plaçant le serveur le plus chargé en haut, une différence intéréssante se dessine :</p>
+<figure>
+    <img src="/images/graphes-le-danger-des-series-empilees/mischievous_node_last.svg"/> <figcaption>
+            <h4>Le même exemple avec les séries ordonnées différement</h4>
+        </figcaption>
+</figure>
+
+<p>Toute l&rsquo;infrastructure n&rsquo;est pas affectée par la diminution brutale du nombre de requêtes mais seulement un des serveurs !</p>
+<figure>
+    <img src="https://media.giphy.com/media/3o7btW7VDxqrhJEnqE/giphy.gif" width="300"/> <figcaption>
+            <h4>Denis Brogniart est stupéfait de cette découverte</h4>
+        </figcaption>
+</figure>
+
+<h3 id="est-ce-un-problème-avec-les-données--avec-le-graphe-">Est-ce un problème avec les données ? Avec le graphe ?</h3>
+<p>Les séries inférieures influencent la forme des séries supérieures. L&rsquo;ordre des séries change donc la perception que l&rsquo;on a d&rsquo;un graphe et, par conséquent, les conclusions qu&rsquo;on en tire !</p>
+<p>Le fait de pouvoir facilement lire une somme pousse à ne plus prendre en compte les différences entre les séries mais seulement lire la série la plus haute et ainsi voir, de façon erronée, une baisse sur toute l&rsquo;infrastructure.</p>
+<p>Ce ne sont ni les données ni leur représentation qui sont erronées, mais bien la lecture que nous en avons. Sans être vigilant, il est facile de penser que la baisse du nombre de requêtes affecte tout l&rsquo;infrastructure.</p>
+<h2 id="comment-sen-prémunir-">Comment s&rsquo;en prémunir ?</h2>
+<p>Il est très facile de se prémunir d&rsquo;une telle erreur d&rsquo;interprétation : ne pas empiler les séries. Pour pouvoir quand même lire un total, il suffit d&rsquo;ajouter une série représentant leur somme :</p>
+<figure>
+    <img src="/images/graphes-le-danger-des-series-empilees/unstacked.svg"/> <figcaption>
+            <h4>Le même exemple sans empiler les séries et avec une somme des séries (noir)</h4>
+        </figcaption>
+</figure>
+
+<p>Avec cette représentation, il apparait de façon très évidente que les variations d&rsquo;une série ont bien un effet sur le total (puisqu&rsquo;il s&rsquo;agit de la somme des points des séries) mais pas sur les autres séries.</p>
+
+    </div>
+
+    
+<footer class="post-footer">
+        
+        <nav class="post-nav">
+            <a class="prev" href="/drop-alt-led-configuration/">
+                <i class="iconfont icon-left"></i>
+                <span class="prev-text nav-default">Drop ALT led configuration using bitmask</span>
+                <span class="prev-text nav-mobile">Précédent</span>
+            </a>
+            
+            <a class="next" href="/timeseries-cardinalite-et-explosion/">
+                <span class="next-text nav-default">Timeseries : Cardinalité et explosion</span>
+                <span class="next-text nav-mobile">Suivant</span>
+                <i class="iconfont icon-right"></i>
+            </a>
+        </nav>
+    </footer>
+</article>
+        </div>
+        
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+  <a href="https://stackoverflow.com/users/5515387" class="iconfont icon-stack-overflow" title="stack-overflow"></a>
+  <a href="https://twitter.com/jerome_pin" class="iconfont icon-twitter" title="twitter"></a>
+  <a href="https://github.com/jeromepin" class="iconfont icon-github" title="github"></a>
+  <a href="https://jeromepin.fr/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="report-error">
+  <p>
+    Si vous trouvez une erreur, je serais ravi <a href="https://github.com/jeromepin/jeromepin.fr/issues/new">de le
+      savoir</a> !
+  </p>
+</div>
+
+
+<div class="copyright">
+  <span class="power-by">
+    Propulsé par <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Thème -
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy;
+    2017 -
+    2020
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span
+      class="author">Jérôme Pin</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/scripts/cash.min.cec498ce1797f9c2997794017bfa0bb54c2648e93d7dc8be3f674197788eb797.js" integrity="sha256-zsSYzheX&#43;cKZd5QBe/oLtUwmSOk9fci&#43;P2dBl3iOt5c="></script>
+
+
+<script type="text/javascript" src="/dist/even.26188efa.min.js"></script>
+
+
+<script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$']],
+        processEscapes: true,
+        processEnvironments: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+        TeX: {
+          equationNumbers: { autoNumber: "AMS" },
+          extensions: ["AMSmath.js", "AMSsymbols.js"]
+        }
+      }
+    });
+    MathJax.Hub.Queue(function () {
+      
+      
+      
+      var all = MathJax.Hub.getAllJax(), i;
+      for (i = 0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+    });
+
+    MathJax.Hub.Config({
+      
+      TeX: { equationNumbers: { autoNumber: "AMS" } }
+    });
+  </script>
+
+
+
+</body>
+</html>

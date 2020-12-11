@@ -1,0 +1,71 @@
+<?xml-stylesheet type="text/xsl" href="https://jeromepin.fr/sitemap.xsl"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  <url>
+    <loc>https://jeromepin.fr/drop-alt-led-configuration/</loc>
+    <lastmod>2020-08-23T12:23:13+02:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://jeromepin.fr/graphes-le-danger-des-series-empilees/</loc>
+    <lastmod>2020-05-03T11:33:00+01:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://jeromepin.fr/timeseries-cardinalite-et-explosion/</loc>
+    <lastmod>2020-01-04T21:12:00+01:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://jeromepin.fr/esctl-managing-elasticsearch-from-command-line/</loc>
+    <lastmod>2019-09-22T22:08:00+01:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://jeromepin.fr/patcher-selon-la-rfc/</loc>
+    <lastmod>2019-04-02T16:08:00+01:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://jeromepin.fr/construire-de-bons-microservices/</loc>
+    <lastmod>2018-09-02T14:51:00+01:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://jeromepin.fr/sharding-proprietes-et-fonctionnement/</loc>
+    <lastmod>2018-07-12T08:54:00+01:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://jeromepin.fr/categories/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://jeromepin.fr/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://jeromepin.fr/tags/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+</urlset>

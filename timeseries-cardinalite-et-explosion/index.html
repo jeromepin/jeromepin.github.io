@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Timeseries : Cardinalité et explosion - Jérôme Pin</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=10" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author"
+  content="Jérôme Pin" /><meta name="description" content="Wikipédia indique :
+ En mathématiques, la cardinalité est une notion de taille pour les ensembles. Lorsqu&amp;rsquo;un ensemble est fini, c&amp;rsquo;est-à-dire si ses éléments peuvent être listés par une suite finie, son cardinal est la longueur de cette suite, autrement dit il s&amp;rsquo;agit du nombre d&amp;rsquo;éléments de l&amp;rsquo;ensemble.
+ C&amp;rsquo;est donc le nombre de valeurs uniques d&amp;rsquo;un ensemble.
+Dans le cas de Prometheus, la cardinalité d&amp;rsquo;une métrique $M$ est le produit de la cardinalité de ses $n$ labels $L_{n}$ tel que :" /><meta name="keywords"
+  content="" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.74.1 with even 4.0.0" />
+
+
+<link rel="canonical" href="https://jeromepin.fr/timeseries-cardinalite-et-explosion/" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+<link href="/dist/even.5bb5d238.min.css" rel="stylesheet">
+<link rel="stylesheet" href="/css/override.min.94a081c052a26663f151b76dee7ee555de4c4fef01d038c5ea6c7758a708c7ec.css" integrity="sha256-lKCBwFKiZmPxUbdt7n7lVd5MT&#43;8B0DjF6mx3WKcIx&#43;w=" />
+
+<meta property="og:title" content="Timeseries : Cardinalité et explosion" />
+<meta property="og:description" content="Wikipédia indique :
+ En mathématiques, la cardinalité est une notion de taille pour les ensembles. Lorsqu&rsquo;un ensemble est fini, c&rsquo;est-à-dire si ses éléments peuvent être listés par une suite finie, son cardinal est la longueur de cette suite, autrement dit il s&rsquo;agit du nombre d&rsquo;éléments de l&rsquo;ensemble.
+ C&rsquo;est donc le nombre de valeurs uniques d&rsquo;un ensemble.
+Dans le cas de Prometheus, la cardinalité d&rsquo;une métrique $M$ est le produit de la cardinalité de ses $n$ labels $L_{n}$ tel que :" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://jeromepin.fr/timeseries-cardinalite-et-explosion/" />
+<meta property="article:published_time" content="2020-01-04T21:12:00+01:00" />
+<meta property="article:modified_time" content="2020-01-04T21:12:00+01:00" />
+<meta itemprop="name" content="Timeseries : Cardinalité et explosion">
+<meta itemprop="description" content="Wikipédia indique :
+ En mathématiques, la cardinalité est une notion de taille pour les ensembles. Lorsqu&rsquo;un ensemble est fini, c&rsquo;est-à-dire si ses éléments peuvent être listés par une suite finie, son cardinal est la longueur de cette suite, autrement dit il s&rsquo;agit du nombre d&rsquo;éléments de l&rsquo;ensemble.
+ C&rsquo;est donc le nombre de valeurs uniques d&rsquo;un ensemble.
+Dans le cas de Prometheus, la cardinalité d&rsquo;une métrique $M$ est le produit de la cardinalité de ses $n$ labels $L_{n}$ tel que :">
+<meta itemprop="datePublished" content="2020-01-04T21:12:00&#43;01:00" />
+<meta itemprop="dateModified" content="2020-01-04T21:12:00&#43;01:00" />
+<meta itemprop="wordCount" content="555">
+
+
+
+<meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Timeseries : Cardinalité et explosion"/>
+<meta name="twitter:description" content="Wikipédia indique :
+ En mathématiques, la cardinalité est une notion de taille pour les ensembles. Lorsqu&rsquo;un ensemble est fini, c&rsquo;est-à-dire si ses éléments peuvent être listés par une suite finie, son cardinal est la longueur de cette suite, autrement dit il s&rsquo;agit du nombre d&rsquo;éléments de l&rsquo;ensemble.
+ C&rsquo;est donc le nombre de valeurs uniques d&rsquo;un ensemble.
+Dans le cas de Prometheus, la cardinalité d&rsquo;une métrique $M$ est le produit de la cardinalité de ses $n$ labels $L_{n}$ tel que :"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Jérôme Pin</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div>
+  <div class="logo-wrapper">
+    <a href="/" class="logo">Jérôme Pin</a>
+  </div>
+</div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+        <h1 class="post-title">Timeseries : Cardinalité et explosion</h1>
+
+        <div class="post-meta">
+            <span class="post-time"> 4 Jan </span>
+            
+            
+        </div>
+    </header>
+
+    
+    <div class="post-content">
+        <p><a href="https://fr.wikipedia.org/wiki/Cardinalit%C3%A9_(math%C3%A9matiques)">Wikipédia</a> indique :</p>
+<blockquote>
+<p>En mathématiques, la cardinalité est une notion de taille pour les ensembles. Lorsqu&rsquo;un ensemble est fini, c&rsquo;est-à-dire si ses éléments peuvent être listés par une suite finie, son cardinal est la longueur de cette suite, autrement dit il s&rsquo;agit du nombre d&rsquo;éléments de l&rsquo;ensemble.</p>
+</blockquote>
+<p>C&rsquo;est donc le nombre de valeurs uniques d&rsquo;un ensemble.</p>
+<p>Dans le cas de Prometheus, la cardinalité d&rsquo;une métrique $M$ est le produit de la cardinalité de ses $n$ labels $L_{n}$ tel que :</p>
+<p>$$ Card(M) = \prod_{n=0}^{X}Card(L_n) $$</p>
+<p>Ainsi, il est facile d&rsquo;imaginer une métrique <code>http_request_duration_seconds</code> ayant les caractéristiques suivantes :</p>
+<ul>
+<li>Un label <code>verb</code> qui représente les méthodes HTTP et qui a pour valeurs possibles : <code>GET</code>, <code>POST</code>, <code>PUT</code> et <code>DELETE</code> ($Card = 4$);</li>
+<li>Un label <code>le</code> qui est le bucket dans lequel la mesure tombe. Il a pour valeurs possibles : 0.1, 0.2, 0.5, 1, <code>+Inf</code> ($Card = 5$);</li>
+<li>Un label <code>browser</code> qui indique le navigateur utilisé par le client : Chrome, Firefox, IE, Edge, Safari, Opera, Others ($Card = 7$);</li>
+<li>Un label <code>device</code> qui représente la famille de périphérique utilisé par le client : Desktop, Mobile, Tablet ($Card = 3$);</li>
+<li>En enfin, un label <code>os</code> qui indique la &ldquo;marque&rdquo; de l&rsquo;OS utilisé par le client : Linux, Microsoft, Apple ($Card = 3$);</li>
+</ul>
+<p>Si la métrique n&rsquo;avait qu&rsquo;un seul label, voire deux, la cardinalité serait faible. Le problème survient lorsque un label est ajouté ou lorsque la cardinalité d&rsquo;un label augmente subitement. La métrique fini innévitablement par arriver à une <a href="https://fr.wikipedia.org/wiki/Explosion_combinatoire">explosion combinatoire</a> : un petit changement du nombre de données rend la cardinalité de notre métrique irraisonable.</p>
+<p>Au début, tout commence de manière raisonnable : il n&rsquo;y a que 2 verbes et 5 buckets. Puis on se dit qu&rsquo;il faudrait séparer par OS. Puis par famille de client. Puis par navigateur. Puis par&hellip; Et la cardinalité est passée de $2 \cdot 5 = 10$ à $4 \cdot 5 \cdot 7 \cdot 3 \cdot 3 = 1260$ !</p>
+<p>Le plus surprenant c&rsquo;est que l&rsquo;augmentation de la cardinalité des labels augmente considérablement la cardinalité de la métrique ! Admettons que chaque cardinalité augmente de 1 (ce qui est peu), la cardinalité de la métrique passe de $1260$ à $5 \cdot 6 \cdot 8 \cdot 4 \cdot 4 = 3840$, soit plus du triple de la valeur initiale !</p>
+<p>Que va-t&rsquo;il se passer si l&rsquo;on décide d&rsquo;ajouter un label <code>customer</code> qui a pour valeur un UUID ? D&rsquo;après <a href="https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_4_(random)">Wikipédia</a>, un UUID dans sa version 4 a 122 bits générés aléatoirement à 0 ou 1, soit $2^{122}$ possiblités !</p>
+<figure>
+    <img src="https://media.giphy.com/media/O3GqAYR9jFxLi/source.gif"/> <figcaption>
+            <h4>Boooooom</h4>
+        </figcaption>
+</figure>
+
+<p>Il semble évident que demander une granularité aussi fine à un tel système est impossible. Les timeseries sont conçues pour traiter et afficher des données en temps réel. Malheureusement, le temps réel est quelque chose de très coûteux, il faut donc faire quelques compromis. Limiter la précision (et donc la cardinalité) est un bon moyen d&rsquo;équilibrer le cout. Il faudrait alors se tourner vers un second système dédié à de la précision, tel que l&rsquo;analyse de logs, pour compléter les mesures.</p>
+<p>Les timeseries servent à donner une vue d&rsquo;ensemble d&rsquo;un système (que ce soit au niveau d&rsquo;un serveur, d&rsquo;une application, d&rsquo;un cluster, d&rsquo;un datacenter&hellip;) mais ne peuvent pas servir à débugger et à trouver l&rsquo;origine d&rsquo;un problème. Une fois qu&rsquo;un problème est détecté, c&rsquo;est vers les logs qu&rsquo;il faut se tourner.</p>
+
+    </div>
+
+    
+<footer class="post-footer">
+        
+        <nav class="post-nav">
+            <a class="prev" href="/graphes-le-danger-des-series-empilees/">
+                <i class="iconfont icon-left"></i>
+                <span class="prev-text nav-default">Graphes : Le danger des séries empilées</span>
+                <span class="prev-text nav-mobile">Précédent</span>
+            </a>
+            
+            <a class="next" href="/esctl-managing-elasticsearch-from-command-line/">
+                <span class="next-text nav-default">Esctl: managing elasticsearch from the command line</span>
+                <span class="next-text nav-mobile">Suivant</span>
+                <i class="iconfont icon-right"></i>
+            </a>
+        </nav>
+    </footer>
+</article>
+        </div>
+        
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+  <a href="https://stackoverflow.com/users/5515387" class="iconfont icon-stack-overflow" title="stack-overflow"></a>
+  <a href="https://twitter.com/jerome_pin" class="iconfont icon-twitter" title="twitter"></a>
+  <a href="https://github.com/jeromepin" class="iconfont icon-github" title="github"></a>
+  <a href="https://jeromepin.fr/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="report-error">
+  <p>
+    Si vous trouvez une erreur, je serais ravi <a href="https://github.com/jeromepin/jeromepin.fr/issues/new">de le
+      savoir</a> !
+  </p>
+</div>
+
+
+<div class="copyright">
+  <span class="power-by">
+    Propulsé par <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Thème -
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy;
+    2017 -
+    2020
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span
+      class="author">Jérôme Pin</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/scripts/cash.min.cec498ce1797f9c2997794017bfa0bb54c2648e93d7dc8be3f674197788eb797.js" integrity="sha256-zsSYzheX&#43;cKZd5QBe/oLtUwmSOk9fci&#43;P2dBl3iOt5c="></script>
+
+
+<script type="text/javascript" src="/dist/even.26188efa.min.js"></script>
+
+
+<script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$']],
+        processEscapes: true,
+        processEnvironments: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+        TeX: {
+          equationNumbers: { autoNumber: "AMS" },
+          extensions: ["AMSmath.js", "AMSsymbols.js"]
+        }
+      }
+    });
+    MathJax.Hub.Queue(function () {
+      
+      
+      
+      var all = MathJax.Hub.getAllJax(), i;
+      for (i = 0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+    });
+
+    MathJax.Hub.Config({
+      
+      TeX: { equationNumbers: { autoNumber: "AMS" } }
+    });
+  </script>
+
+
+
+</body>
+</html>

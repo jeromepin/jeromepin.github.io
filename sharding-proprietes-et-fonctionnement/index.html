@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Sharding : Propriétés et fonctionnement - Jérôme Pin</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=10" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author"
+  content="Jérôme Pin" /><meta name="description" content="Le sharding (aussi souvent nommé horizontal partitioning) est une méthode de séparation des données d&amp;rsquo;une base de données en plusieurs groupes logiques, généralement répartis sur plusieurs nœuds d&amp;rsquo;un cluster.
+Le sharding a plusieurs avantages :
+ dépasser les limitations d&amp;rsquo;une machine seule (CPU, stockage, etc&amp;hellip;); effectuer des traitements concurrents; limiter la diffusion d&amp;rsquo;une requête à un sous-set de données;  Le sharding est souvent implémenté au niveau de la base de donnée elle-même (comme Elasticsearch, Cassandra ou MongoDB) mais peut aussi l&amp;rsquo;être au niveau applicatif pour supporter des bases de données où le sharding n&amp;rsquo;est pas natif (comme Redis)." /><meta name="keywords"
+  content="" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.74.1 with even 4.0.0" />
+
+
+<link rel="canonical" href="https://jeromepin.fr/sharding-proprietes-et-fonctionnement/" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+<link href="/dist/even.5bb5d238.min.css" rel="stylesheet">
+<link rel="stylesheet" href="/css/override.min.94a081c052a26663f151b76dee7ee555de4c4fef01d038c5ea6c7758a708c7ec.css" integrity="sha256-lKCBwFKiZmPxUbdt7n7lVd5MT&#43;8B0DjF6mx3WKcIx&#43;w=" />
+
+<meta property="og:title" content="Sharding : Propriétés et fonctionnement" />
+<meta property="og:description" content="Le sharding (aussi souvent nommé horizontal partitioning) est une méthode de séparation des données d&rsquo;une base de données en plusieurs groupes logiques, généralement répartis sur plusieurs nœuds d&rsquo;un cluster.
+Le sharding a plusieurs avantages :
+ dépasser les limitations d&rsquo;une machine seule (CPU, stockage, etc&hellip;); effectuer des traitements concurrents; limiter la diffusion d&rsquo;une requête à un sous-set de données;  Le sharding est souvent implémenté au niveau de la base de donnée elle-même (comme Elasticsearch, Cassandra ou MongoDB) mais peut aussi l&rsquo;être au niveau applicatif pour supporter des bases de données où le sharding n&rsquo;est pas natif (comme Redis)." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://jeromepin.fr/sharding-proprietes-et-fonctionnement/" />
+<meta property="article:published_time" content="2018-07-12T08:54:00+01:00" />
+<meta property="article:modified_time" content="2018-07-12T08:54:00+01:00" />
+<meta itemprop="name" content="Sharding : Propriétés et fonctionnement">
+<meta itemprop="description" content="Le sharding (aussi souvent nommé horizontal partitioning) est une méthode de séparation des données d&rsquo;une base de données en plusieurs groupes logiques, généralement répartis sur plusieurs nœuds d&rsquo;un cluster.
+Le sharding a plusieurs avantages :
+ dépasser les limitations d&rsquo;une machine seule (CPU, stockage, etc&hellip;); effectuer des traitements concurrents; limiter la diffusion d&rsquo;une requête à un sous-set de données;  Le sharding est souvent implémenté au niveau de la base de donnée elle-même (comme Elasticsearch, Cassandra ou MongoDB) mais peut aussi l&rsquo;être au niveau applicatif pour supporter des bases de données où le sharding n&rsquo;est pas natif (comme Redis).">
+<meta itemprop="datePublished" content="2018-07-12T08:54:00&#43;01:00" />
+<meta itemprop="dateModified" content="2018-07-12T08:54:00&#43;01:00" />
+<meta itemprop="wordCount" content="953">
+
+
+
+<meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Sharding : Propriétés et fonctionnement"/>
+<meta name="twitter:description" content="Le sharding (aussi souvent nommé horizontal partitioning) est une méthode de séparation des données d&rsquo;une base de données en plusieurs groupes logiques, généralement répartis sur plusieurs nœuds d&rsquo;un cluster.
+Le sharding a plusieurs avantages :
+ dépasser les limitations d&rsquo;une machine seule (CPU, stockage, etc&hellip;); effectuer des traitements concurrents; limiter la diffusion d&rsquo;une requête à un sous-set de données;  Le sharding est souvent implémenté au niveau de la base de donnée elle-même (comme Elasticsearch, Cassandra ou MongoDB) mais peut aussi l&rsquo;être au niveau applicatif pour supporter des bases de données où le sharding n&rsquo;est pas natif (comme Redis)."/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Jérôme Pin</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div>
+  <div class="logo-wrapper">
+    <a href="/" class="logo">Jérôme Pin</a>
+  </div>
+</div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+        <h1 class="post-title">Sharding : Propriétés et fonctionnement</h1>
+
+        <div class="post-meta">
+            <span class="post-time"> 12 Jul </span>
+            
+            
+        </div>
+    </header>
+
+    
+<div class="post-toc" id="post-toc">
+  
+  <div
+    class="post-toc-content always-active">
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#principes-de-base">Principes de base</a>
+      <ul>
+        <li><a href="#notions">Notions</a></li>
+        <li><a href="#comment-les-données-sont-lues-et-écrites">Comment les données sont lues et écrites</a></li>
+        <li><a href="#comment-les-données-sont-distribuées">Comment les données sont distribuées</a></li>
+        <li><a href="#comment-gérer-la-redistribution-des-données">Comment gérer la redistribution des données</a></li>
+      </ul>
+    </li>
+    <li><a href="#sharding-algorithmique">Sharding algorithmique</a></li>
+    <li><a href="#sharding-dynamique">Sharding dynamique</a></li>
+    <li><a href="#conclusion">Conclusion</a></li>
+  </ul>
+</nav>
+  </div>
+</div>
+
+    <div class="post-content">
+        <p>Le sharding (aussi souvent nommé <em>horizontal partitioning</em>) est une méthode de séparation des données d&rsquo;une base de données en plusieurs groupes logiques, généralement répartis sur plusieurs nœuds d&rsquo;un cluster.</p>
+<p>Le sharding a plusieurs avantages :</p>
+<ul>
+<li>dépasser les limitations d&rsquo;une machine seule (CPU, stockage, etc&hellip;);</li>
+<li>effectuer des traitements concurrents;</li>
+<li>limiter la diffusion d&rsquo;une requête à un sous-set de données;</li>
+</ul>
+<p>Le sharding est souvent implémenté au niveau de la base de donnée elle-même (comme <a href="https://www.elastic.co/guide/en/elasticsearch/reference/6.2/_basic_concepts.html#getting-started-shards-and-replicas">Elasticsearch</a>, Cassandra ou <a href="https://docs.mongodb.com/manual/sharding/">MongoDB</a>) mais peut aussi l&rsquo;être au niveau applicatif pour supporter des bases de données où le sharding n&rsquo;est pas natif (comme <a href="https://redis.io/topics/partitioning">Redis</a>).</p>
+<p>Il existe plusieurs stratégies pour distribuer des données dans plusieurs base de données. Chacune a ses avantages et ses inconvénients et doit être choisie avec soin en fonction des besoins et des contraintes. Quelle que soit la stratégie choisie, il faut toujours prendre en compte les possibles <strong>hotspots</strong> : une distribution inégale des données entraine une surutilisation de certains shards et réduit presque à néant l&rsquo;intérêt du sharding.</p>
+<h2 id="principes-de-base">Principes de base</h2>
+<h3 id="notions">Notions</h3>
+<ul>
+<li>clé de shard : (<em>shard key</em>) Suite de caractères qui identifie de façon unique un shard.</li>
+<li>shard logique : (<em>logical shard</em>) Ensemble de données stockées sur un seul nœud et partageant la même clé de shard.</li>
+<li>shard physique : (<em>physical shard</em>) Un nœud du cluster, il peut contenir plusieurs shards logiques.</li>
+</ul>
+<h3 id="comment-les-données-sont-lues-et-écrites">Comment les données sont lues et écrites</h3>
+<p>Les bases de données sont utilisées pour stocker des données. Par conséquent le choix de la stratégie de sharding dépend de ces accès. Il s&rsquo;agit de définir à l&rsquo;avance les <a href="https://landing.google.com/sre/sre-book/chapters/service-level-objectives/">SLOs</a> :</p>
+<ul>
+<li>Quelle est la distribution entre la lecture et l&rsquo;écriture ? (50/50, 80/20, etc&hellip;)</li>
+<li>Quels volumes sont gérés ?</li>
+<li>Quels sont les objectifs de performance ? (latence, vitesse, etc&hellip;)</li>
+</ul>
+<h3 id="comment-les-données-sont-distribuées">Comment les données sont distribuées</h3>
+<p>Les <strong>hotspot</strong> contrebalancent presque totalement l&rsquo;intérêt du sharding. Il faut donc choisir avec soin le critère sur lequel les données vont être distribuées. Se baser sur une clé trop commune et non-uniformément distribuée va créer un déséquilibre dans la répartition de nos données.</p>
+<p>Par exemple, dans une base de données qui stocke des documents utilisateurs, distribuer les données en se basant sur l&rsquo;identifiant de l&rsquo;utilisateur est une mauvaise idée. Si un utilisateur enregistre beaucoup plus de documents que les autres, le shard auquel il est associé va croître fortement. Que va-t-il se passer lorsque ce shard dépassera la taille d&rsquo;un nœud ? Comment ce shard va impacter les performances du reste du cluster ?</p>
+<h3 id="comment-gérer-la-redistribution-des-données">Comment gérer la redistribution des données</h3>
+<p>Une fois que les questions ci-dessus sont traitées, que le cluster fonctionne et que l&rsquo;utilisation prend de l&rsquo;ampleur, un premier problème survient : comment ajouter/modifier/supprimer des nœuds sans affecter les performances ?</p>
+<p>Lors de la modification de l&rsquo;état du cluster, les données stockées vont devoir être redistribuées et il va falloir en déplacer de grandes quantités rapidement sans avoir d&rsquo;incidence sur les performances.</p>
+<h2 id="sharding-algorithmique">Sharding algorithmique</h2>
+<p>Le sharding algorithmique (aussi nommé <em>Client side partitioning</em>) permet au client de déterminer le shard sans aide extérieure, en se basant uniquement sur une fonction généralement de la forme <code>hash(key) % num_nodes</code>.</p>
+<p><a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-routing-field.html">Elasticsearch</a> utilise cette stratégie pour définir sur quel shard doit se trouver un document :</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">shard_num = hash_murmur3(doc._id) % num_primary_shards
+</code></pre></td></tr></table>
+</div>
+</div><p>Le sharding algorithmique distribue les données en se basant uniquement sur cette fonction, et ne prend en compte aucun paramètre extérieur comme le taux d&rsquo;utilisation d&rsquo;un nœud, la taille de la donnée à traiter, etc&hellip;</p>
+<p>Redistribuer les données peut s&rsquo;avérer complexe : cela requiert non seulement de déplacer les données mais aussi de mettre à jour la fonction utilisée. La fonction idéale ne devrait pas nécessiter de déplacer plus de <code>1/n</code> données et ne devrait pas déplacer des données qui n&rsquo;ont pas besoin de l&rsquo;être.</p>
+<h2 id="sharding-dynamique">Sharding dynamique</h2>
+<p>Le sharding dynamique (parfois nommé <em>Proxy assisted partitioning</em>) nécessite un <strong>service externe</strong> pour déterminer l&rsquo;emplacement d&rsquo;une donnée. Ce service agit comme un annuaire et indique la correspondance entre une clé (ou un ensemble de clés) et le shard sur lequel cette clé est assignée. Par exemple, <a href="https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-hdfs/HdfsDesign.html#NameNode_and_DataNodes">HDFS</a> utilise un <em>Namenode</em> pour stocker ses métadonnnées.</p>
+<table>
+<thead>
+<tr>
+<th>range</th>
+<th>shard</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0, 3</td>
+<td>0</td>
+</tr>
+<tr>
+<td>4, 7</td>
+<td>1</td>
+</tr>
+<tr>
+<td>8, B</td>
+<td>2</td>
+</tr>
+<tr>
+<td>C, F</td>
+<td>3</td>
+</tr>
+</tbody>
+</table>
+<p>Pour lire ou écrire une donnée, les clients ont nécessairement besoin de contacte le service de localisation. Celui va ensuite contacter la base de données elle-même, faisant office de proxy.</p>
+<p>Ce service externe permet de mieux gérer les données non-uniformément distribuées puisque les ensembles de clés n&rsquo;ont pas besoin d&rsquo;être de taille identique mais peuvent varier en fonction des besoins.</p>
+<p>En revanche, il devient aussi un point de défaillance unique : chaque lecture ou écriture a besoin d&rsquo;y accéder, il faut donc que la stabilité et les performances soient au rendez-vous. Il ne peut pas être caché ni dupliqué  facilement : des données obsolètes causeraient un désastre sur le cluster.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>Le sharding ajoute de la complexité non seulement en termes de développement mais aussi d&rsquo;opérations : les données ne sont plus stockées au même endroit, le réseau introduit de la latence, la topologie change, plus de serveurs doivent être configurés, etc&hellip;</p>
+<p>Le sharding ne doit pas être le premier axe d&rsquo;amélioration. Bien connaître les données que à stocker et la façon dont elles vont être utilisées est beaucoup plus important. Utiliser un serveur plus puissant suffit souvent à régler les problèmes de performances tant que l&rsquo;échelle reste modérée.</p>
+<p>Si l&rsquo;application est limitée par les performances de lecture de la base de données, ajouter des <strong>caches</strong> ou des <strong>replicas de lecture</strong> peut corriger le problème sans ajouter trop de complexité.</p>
+<p>Enfin, il est important de s&rsquo;assurer que les données sont organisées de façon optimale : les blobs sont sur un stockage externe (système de fichier, stockage objets, etc&hellip;), l&rsquo;analyse et la recherche sont délégués à d&rsquo;autres systèmes, etc&hellip;</p>
+
+    </div>
+
+    
+<footer class="post-footer">
+        
+        <nav class="post-nav">
+            <a class="prev" href="/construire-de-bons-microservices/">
+                <i class="iconfont icon-left"></i>
+                <span class="prev-text nav-default">Construire de bons microservices</span>
+                <span class="prev-text nav-mobile">Précédent</span>
+            </a>
+            
+        </nav>
+    </footer>
+</article>
+        </div>
+        
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+  <a href="https://stackoverflow.com/users/5515387" class="iconfont icon-stack-overflow" title="stack-overflow"></a>
+  <a href="https://twitter.com/jerome_pin" class="iconfont icon-twitter" title="twitter"></a>
+  <a href="https://github.com/jeromepin" class="iconfont icon-github" title="github"></a>
+  <a href="https://jeromepin.fr/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="report-error">
+  <p>
+    Si vous trouvez une erreur, je serais ravi <a href="https://github.com/jeromepin/jeromepin.fr/issues/new">de le
+      savoir</a> !
+  </p>
+</div>
+
+
+<div class="copyright">
+  <span class="power-by">
+    Propulsé par <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Thème -
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy;
+    2017 -
+    2020
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span
+      class="author">Jérôme Pin</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/scripts/cash.min.cec498ce1797f9c2997794017bfa0bb54c2648e93d7dc8be3f674197788eb797.js" integrity="sha256-zsSYzheX&#43;cKZd5QBe/oLtUwmSOk9fci&#43;P2dBl3iOt5c="></script>
+
+
+<script type="text/javascript" src="/dist/even.26188efa.min.js"></script>
+
+
+<script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$']],
+        processEscapes: true,
+        processEnvironments: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+        TeX: {
+          equationNumbers: { autoNumber: "AMS" },
+          extensions: ["AMSmath.js", "AMSsymbols.js"]
+        }
+      }
+    });
+    MathJax.Hub.Queue(function () {
+      
+      
+      
+      var all = MathJax.Hub.getAllJax(), i;
+      for (i = 0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+    });
+
+    MathJax.Hub.Config({
+      
+      TeX: { equationNumbers: { autoNumber: "AMS" } }
+    });
+  </script>
+
+
+
+</body>
+</html>

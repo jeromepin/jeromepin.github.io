@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>PATCH-er selon la RFC - Jérôme Pin</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=10" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author"
+  content="Jérôme Pin" /><meta name="description" content="PUT: mise à jour totale La plupart des APIs REST proposent des mécanismes pour modifier des ressources, notamment grâce au verbe PUT qui permet d&amp;rsquo;envoyer la ressource à mettre à jour. PUT pose tout de même 3 problèmes :
+ Il est nécéssaire de faire un GET au préalable afin d&amp;rsquo;obtenir la totalité de la ressource Il faut s&amp;rsquo;assurer que la ressource n&amp;rsquo;a pas été modifiée côté serveur entre le GET et le PUT Il faut envoyer l&amp;rsquo;intégralité de la ressource, y compris les champs qui restent inchangés." /><meta name="keywords"
+  content="" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.74.1 with even 4.0.0" />
+
+
+<link rel="canonical" href="https://jeromepin.fr/patcher-selon-la-rfc/" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+<link href="/dist/even.5bb5d238.min.css" rel="stylesheet">
+<link rel="stylesheet" href="/css/override.min.94a081c052a26663f151b76dee7ee555de4c4fef01d038c5ea6c7758a708c7ec.css" integrity="sha256-lKCBwFKiZmPxUbdt7n7lVd5MT&#43;8B0DjF6mx3WKcIx&#43;w=" />
+
+<meta property="og:title" content="PATCH-er selon la RFC" />
+<meta property="og:description" content="PUT: mise à jour totale La plupart des APIs REST proposent des mécanismes pour modifier des ressources, notamment grâce au verbe PUT qui permet d&rsquo;envoyer la ressource à mettre à jour. PUT pose tout de même 3 problèmes :
+ Il est nécéssaire de faire un GET au préalable afin d&rsquo;obtenir la totalité de la ressource Il faut s&rsquo;assurer que la ressource n&rsquo;a pas été modifiée côté serveur entre le GET et le PUT Il faut envoyer l&rsquo;intégralité de la ressource, y compris les champs qui restent inchangés." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://jeromepin.fr/patcher-selon-la-rfc/" />
+<meta property="article:published_time" content="2019-04-02T16:08:00+01:00" />
+<meta property="article:modified_time" content="2019-04-02T16:08:00+01:00" />
+<meta itemprop="name" content="PATCH-er selon la RFC">
+<meta itemprop="description" content="PUT: mise à jour totale La plupart des APIs REST proposent des mécanismes pour modifier des ressources, notamment grâce au verbe PUT qui permet d&rsquo;envoyer la ressource à mettre à jour. PUT pose tout de même 3 problèmes :
+ Il est nécéssaire de faire un GET au préalable afin d&rsquo;obtenir la totalité de la ressource Il faut s&rsquo;assurer que la ressource n&rsquo;a pas été modifiée côté serveur entre le GET et le PUT Il faut envoyer l&rsquo;intégralité de la ressource, y compris les champs qui restent inchangés.">
+<meta itemprop="datePublished" content="2019-04-02T16:08:00&#43;01:00" />
+<meta itemprop="dateModified" content="2019-04-02T16:08:00&#43;01:00" />
+<meta itemprop="wordCount" content="941">
+
+
+
+<meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="PATCH-er selon la RFC"/>
+<meta name="twitter:description" content="PUT: mise à jour totale La plupart des APIs REST proposent des mécanismes pour modifier des ressources, notamment grâce au verbe PUT qui permet d&rsquo;envoyer la ressource à mettre à jour. PUT pose tout de même 3 problèmes :
+ Il est nécéssaire de faire un GET au préalable afin d&rsquo;obtenir la totalité de la ressource Il faut s&rsquo;assurer que la ressource n&rsquo;a pas été modifiée côté serveur entre le GET et le PUT Il faut envoyer l&rsquo;intégralité de la ressource, y compris les champs qui restent inchangés."/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Jérôme Pin</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div>
+  <div class="logo-wrapper">
+    <a href="/" class="logo">Jérôme Pin</a>
+  </div>
+</div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+        <h1 class="post-title">PATCH-er selon la RFC</h1>
+
+        <div class="post-meta">
+            <span class="post-time"> 2 Apr </span>
+            
+            
+        </div>
+    </header>
+
+    
+<div class="post-toc" id="post-toc">
+  
+  <div
+    class="post-toc-content always-active">
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#put-mise-à-jour-totale">PUT: mise à jour totale</a></li>
+    <li><a href="#patch-mauvais-usage">PATCH: mauvais usage</a></li>
+    <li><a href="#patch-er-correctement">PATCH-er correctement</a>
+      <ul>
+        <li><a href="#quel-format-pour-un-patch-">Quel format pour un patch ?</a></li>
+      </ul>
+    </li>
+    <li><a href="#conclusion">Conclusion</a></li>
+  </ul>
+</nav>
+  </div>
+</div>
+
+    <div class="post-content">
+        <h2 id="put-mise-à-jour-totale">PUT: mise à jour totale</h2>
+<p>La plupart des APIs REST proposent des mécanismes pour modifier des ressources, notamment grâce au verbe <em>PUT</em> qui permet d&rsquo;envoyer la ressource à mettre à jour. <em>PUT</em> pose tout de même 3 problèmes :</p>
+<ul>
+<li>Il est nécéssaire de faire un <em>GET</em> au préalable afin d&rsquo;obtenir la totalité de la ressource</li>
+<li>Il faut s&rsquo;assurer que la ressource n&rsquo;a pas été modifiée côté serveur entre le <em>GET</em> et le <em>PUT</em></li>
+<li>Il faut envoyer l&rsquo;intégralité de la ressource, y compris les champs qui restent inchangés.</li>
+</ul>
+<p>La méthode <em>PUT</em> apparait ne pas être la solution idéale pour effectuer une mise à jour partielle.</p>
+<p>Certaines API proposent d&rsquo;exposer directement chaque champ de la ressource et d&rsquo;utiliser <em>PUT</em> pour faire la mise à jour :</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http">PUT /users/jeromepin/age
+
+24
+</code></pre></td></tr></table>
+</div>
+</div><p>C&rsquo;est une solution simple mais qui rajoute beaucoup de complexité dans l&rsquo;API. Et si le client souhaite mettre à jour plusieurs informations, il doit effectuer plusieurs appels <em>PUT</em>. La solution n&rsquo;est toujours pas là. Heureusement, la <a href="https://tools.ietf.org/html/rfc5789">RFC 5789</a> propose un verbe HTTP conçu pour les mises à jour partielles : <em>PATCH</em></p>
+<h2 id="patch-mauvais-usage">PATCH: mauvais usage</h2>
+<p><em>PATCH</em> permet donc de modifier <strong>partiellement</strong> une ressource donnée. Ainsi beaucoup d&rsquo;APIs ont ajouté le support de ce verbe au travers d&rsquo;appels tels que :</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http">PATCH /users/jeromepin
+
+age=25
+</code></pre></td></tr></table>
+</div>
+</div><p>ou encore :</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http">PATCH /users/jeromepin
+
+{ &#34;age&#34; : &#34;25&#34; }
+</code></pre></td></tr></table>
+</div>
+</div><p><strong>CE N&rsquo;EST PAS LE RÔLE DE <em>PATCH</em> !</strong></p>
+<p><em>PATCH</em> ne doit pas envoyer une partie d&rsquo;une ressource.</p>
+<h2 id="patch-er-correctement">PATCH-er correctement</h2>
+<p>Le but de <em>PATCH</em> n&rsquo;est pas seulement de mettre à jour une ressource. En réalité, ce n&rsquo;est pas du tout la façon dont <em>PATCH</em> doit fonctionner. La RFC indique :</p>
+<blockquote>
+<p>The difference between the PUT and PATCH requests is reflected in the way the server processes the enclosed entity to modify the resource identified by the Request-URI.  In a PUT request, the enclosed entity is considered to be a modified version of the resource stored on the origin server, and the client is requesting that the stored version be replaced.  With PATCH, however, the enclosed entity contains a set of instructions describing how a resource currently residing on the origin server should be modified to produce a new version.</p>
+</blockquote>
+<p>Il est clairement indiqué que <em>PATCH</em>, contrairement à <em>PUT</em> qui envoi la nouvelle ressource dans son intégralité, doit envoyer une <strong>liste d&rsquo;instructions décrivant la façon selon laquelle la ressource située sur le serveur doit être modifiée</strong>.</p>
+<p>Une requête <em>PATCH</em> ressemble à ça :</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http"><span style="color:#c34e00">PATCH</span> /users/jeromepin <span style="color:#00f">HTTP</span>/1.1
+Host: www.example.com
+Content-Type: application/example
+
+[description of changes]
+</code></pre></td></tr></table>
+</div>
+</div><p><code>[description of changes]</code> est appelé &ldquo;<em>patch document</em>&rdquo; (ou plus simplement &ldquo;<em>patch</em>&quot;). Le format de ce patch n&rsquo;est pas défini dans cette RFC est peut-être de n&rsquo;importe quel type comme par exemple la sortie de la commande <code>diff</code> :</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http"><span style="color:#c34e00">PATCH</span> /users/jeromepin <span style="color:#00f">HTTP</span>/1.1
+Host: www.example.com
+Content-Type: application/diff
+
+--- old-json	2019-04-01 12:02:50.000000000 +0200
++++ new-json	2019-04-01 12:03:00.000000000 +0200
+@@ -1,4 +1,4 @@
+{
+    &#34;name&#34;: &#34;Jerome Pin&#34;,
+-   &#34;age&#34;: 24
++   &#34;age&#34;: 25
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>Le <code>Content-Type</code> du <em>PATCH</em> doit être adapté au format du patch envoyé.</p>
+<p>Le serveur <strong>DOIT</strong> appliquer la totalité des changements de la requête de façon atomique et ne jamais fournir (c.à.d enregistrer en base ou retourner à un client) la ressource partiellement modifiée. Si le patch ne peut pas être appliqué dans sa totalité, alors il ne doit pas être appliqué du tout.</p>
+<h3 id="quel-format-pour-un-patch-">Quel format pour un patch ?</h3>
+<p>La RFC 5789 est très souple et n&rsquo;indique pas de type spécifique pour le format du patch, ainsi, c&rsquo;est au serveur de veiller à supporter le type de patch approprié aux documents qu&rsquo;il manipule.</p>
+<p>Heureusement, pour la manipulation de documents JSON (issus par exemple de base de données orientées documents), les RFC <a href="https://tools.ietf.org/html/rfc6901">6901</a> et <a href="https://tools.ietf.org/html/rfc6902">6902</a> définissent respectivement les termes <em>&ldquo;JSON Pointer&rdquo;</em> et <em>&ldquo;JSON Patch&rdquo;</em>.</p>
+<p>Un <em>&ldquo;JSON Pointer&rdquo;</em> défini une syntaxe sous forme de chaine de caractères pour identifier une valeur spécifique au sein d&rsquo;un objet JSON : <code>/users/0/email</code>.
+Un <em>&ldquo;JSON Patch&rdquo;</em> défini la structure d&rsquo;un document JSON permettant d&rsquo;exprimer une série de modifications à appliquer à un document JSON :</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[
+     { &#34;op&#34;: <span style="color:#009c00">&#34;test&#34;</span>, &#34;path&#34;: <span style="color:#009c00">&#34;/a/b/c&#34;</span>, &#34;value&#34;: <span style="color:#009c00">&#34;foo&#34;</span> },
+     { &#34;op&#34;: <span style="color:#009c00">&#34;remove&#34;</span>, &#34;path&#34;: <span style="color:#009c00">&#34;/a/b/c&#34;</span> },
+     { &#34;op&#34;: <span style="color:#009c00">&#34;add&#34;</span>, &#34;path&#34;: <span style="color:#009c00">&#34;/a/b/c&#34;</span>, &#34;value&#34;: [ <span style="color:#009c00">&#34;foo&#34;</span>, <span style="color:#009c00">&#34;bar&#34;</span> ] },
+     { &#34;op&#34;: <span style="color:#009c00">&#34;replace&#34;</span>, &#34;path&#34;: <span style="color:#009c00">&#34;/a/b/c&#34;</span>, &#34;value&#34;: 42 },
+     { &#34;op&#34;: <span style="color:#009c00">&#34;move&#34;</span>, &#34;from&#34;: <span style="color:#009c00">&#34;/a/b/c&#34;</span>, &#34;path&#34;: <span style="color:#009c00">&#34;/a/b/d&#34;</span> },
+     { &#34;op&#34;: <span style="color:#009c00">&#34;copy&#34;</span>, &#34;from&#34;: <span style="color:#009c00">&#34;/a/b/d&#34;</span>, &#34;path&#34;: <span style="color:#009c00">&#34;/a/b/e&#34;</span> }
+]
+</code></pre></td></tr></table>
+</div>
+</div><p>Avec ces deux nouvelles RFC, il est possible d&rsquo;effectuer une requête <em>PATCH</em> pour enfin modifier un document JSON :</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http"><span style="color:#c34e00">PATCH</span> /users/jeromepin <span style="color:#00f">HTTP</span>/1.1
+Host: www.example.com
+Content-Type: application/json-patch+json
+
+[
+    { &#34;op&#34;: <span style="color:#009c00">&#34;replace&#34;</span>, &#34;path&#34;: <span style="color:#009c00">&#34;/age&#34;</span>, &#34;value&#34;: <span style="color:#009c00">&#34;25&#34;</span> }
+]
+</code></pre></td></tr></table>
+</div>
+</div><p>Dans le cas où le serveur manipule du XML, une <a href="http://tools.ietf.org/html/rfc5261">RFC</a> décrit un format équivalent au JSON-Patch.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>Cet usage de <em>PATCH</em> reste très peu connu. Il est censé être le standard à utiliser pour des mises à jour partielles, mais il est facile de s&rsquo;aperçevoir qu&rsquo;un tel fonctionnement complexifie la gestion du serveur et la façon dont nous avons l&rsquo;habitude d&rsquo;utiliser les verbes plus traditionnels (<em>GET</em>, <em>POST</em>, <em>PUT</em>). La RFC étant très souple, il est tout à fait possible d&rsquo;utiliser son propre format de patch, ainsi pour incrémenter l&rsquo;age, il est possible de faire quelque chose comme :</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http"><span style="color:#c34e00">PATCH</span> /users/jeromepin <span style="color:#00f">HTTP</span>/1.1
+Host: www.example.com
+Content-Type: application/custom-format+json
+
+[
+    { &#34;increment&#34;: <span style="color:#009c00">&#34;age&#34;</span> }
+]
+</code></pre></td></tr></table>
+</div>
+</div><p>Évidemment, d&rsquo;un point de vue conceptuel, il faut alors se demander si cette façon d&rsquo;envoyer des actions plutôt que des états est compatible avec la philosophie REST ? N&rsquo;est-ce pas plus proche de RPC ?</p>
+
+    </div>
+
+    
+<footer class="post-footer">
+        
+        <nav class="post-nav">
+            <a class="prev" href="/esctl-managing-elasticsearch-from-command-line/">
+                <i class="iconfont icon-left"></i>
+                <span class="prev-text nav-default">Esctl: managing elasticsearch from the command line</span>
+                <span class="prev-text nav-mobile">Précédent</span>
+            </a>
+            
+            <a class="next" href="/construire-de-bons-microservices/">
+                <span class="next-text nav-default">Construire de bons microservices</span>
+                <span class="next-text nav-mobile">Suivant</span>
+                <i class="iconfont icon-right"></i>
+            </a>
+        </nav>
+    </footer>
+</article>
+        </div>
+        
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+  <a href="https://stackoverflow.com/users/5515387" class="iconfont icon-stack-overflow" title="stack-overflow"></a>
+  <a href="https://twitter.com/jerome_pin" class="iconfont icon-twitter" title="twitter"></a>
+  <a href="https://github.com/jeromepin" class="iconfont icon-github" title="github"></a>
+  <a href="https://jeromepin.fr/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="report-error">
+  <p>
+    Si vous trouvez une erreur, je serais ravi <a href="https://github.com/jeromepin/jeromepin.fr/issues/new">de le
+      savoir</a> !
+  </p>
+</div>
+
+
+<div class="copyright">
+  <span class="power-by">
+    Propulsé par <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Thème -
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  
+
+  <span class="copyright-year">
+    &copy;
+    2017 -
+    2020
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span
+      class="author">Jérôme Pin</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/scripts/cash.min.cec498ce1797f9c2997794017bfa0bb54c2648e93d7dc8be3f674197788eb797.js" integrity="sha256-zsSYzheX&#43;cKZd5QBe/oLtUwmSOk9fci&#43;P2dBl3iOt5c="></script>
+
+
+<script type="text/javascript" src="/dist/even.26188efa.min.js"></script>
+
+
+<script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$']],
+        processEscapes: true,
+        processEnvironments: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+        TeX: {
+          equationNumbers: { autoNumber: "AMS" },
+          extensions: ["AMSmath.js", "AMSsymbols.js"]
+        }
+      }
+    });
+    MathJax.Hub.Queue(function () {
+      
+      
+      
+      var all = MathJax.Hub.getAllJax(), i;
+      for (i = 0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+    });
+
+    MathJax.Hub.Config({
+      
+      TeX: { equationNumbers: { autoNumber: "AMS" } }
+    });
+  </script>
+
+
+
+</body>
+</html>
